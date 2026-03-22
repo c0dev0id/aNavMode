@@ -133,6 +133,14 @@ public class WaypointLayer extends Layer {
         requestRedraw();
     }
 
+    /**
+     * Add a waypoint at the current map centre (i.e. under the crosshair).
+     * Call this from the "add waypoint" FAB.
+     */
+    public void addAtCenter() {
+        addWaypoint(mapView.getModel().mapViewPosition.getCenter());
+    }
+
     public List<LatLong> getWaypoints() {
         return Collections.unmodifiableList(waypoints);
     }
@@ -162,11 +170,15 @@ public class WaypointLayer extends Layer {
     // Tap handling — this layer must be the top (last) layer in the stack
     // -------------------------------------------------------------------------
 
+    /**
+     * Tap an existing waypoint marker to remove it.
+     * Map panning + fabAddWaypoint is how new waypoints are added.
+     */
     @Override
     public boolean onTap(LatLong tapLatLong, Point layerXY, Point tapXY) {
-        byte zoom     = mapView.getModel().mapViewPosition.getZoomLevel();
-        long mapSize  = MercatorProjection.getMapSize(zoom, tileSize);
-        double hitSq  = Math.pow(dp(HIT_RADIUS_DP), 2);
+        byte zoom    = mapView.getModel().mapViewPosition.getZoomLevel();
+        long mapSize = MercatorProjection.getMapSize(zoom, tileSize);
+        double hitSq = Math.pow(dp(HIT_RADIUS_DP), 2);
 
         for (int i = 0; i < waypoints.size(); i++) {
             LatLong wp = waypoints.get(i);
@@ -180,8 +192,7 @@ public class WaypointLayer extends Layer {
             }
         }
 
-        addWaypoint(tapLatLong);
-        return true;
+        return false; // tap didn't hit a waypoint; let it fall through
     }
 
     // -------------------------------------------------------------------------

@@ -8,6 +8,25 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
+    <!-- Crosshair fixed at screen centre; not clickable so touches reach MapView -->
+    <de.codevoid.aNavMode.map.CrosshairView
+        android:id="@+id/crosshair"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clickable="false"
+        android:focusable="false" />
+
+    <!-- Confirm: add waypoint at crosshair position -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabAddWaypoint"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|start"
+        android:layout_margin="16dp"
+        android:src="@android:drawable/ic_input_add"
+        android:contentDescription="Add waypoint at crosshair" />
+
+    <!-- Debug tools -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabDebug"
         android:layout_width="wrap_content"

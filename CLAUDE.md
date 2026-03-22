@@ -27,8 +27,9 @@ Single-module Android app (Java, traditional Views). Offline-first: map tiles an
 2. Route `Polyline`s — inserted dynamically by `WaypointLayer` just below itself
 3. `WaypointLayer` — always last; draws markers, handles all map taps
 
-**Interaction model** (brouter-web style):
-- Tap empty map → add waypoint; auto-routes each new segment via BRouter
+**Interaction model** (crosshair + FAB):
+- `CrosshairView` (ported from aWayToGo, CC0) is fixed at screen centre; touch events pass through to `MapView`
+- Pan map to position crosshair, press `fabAddWaypoint` (bottom-left) → `WaypointLayer.addAtCenter()` reads `mapViewPosition.getCenter()` and adds the waypoint
 - Tap an existing waypoint marker → removes it and re-routes affected segments
 - Green = start, blue = via, red = end; segments routed serially (one at a time)
 

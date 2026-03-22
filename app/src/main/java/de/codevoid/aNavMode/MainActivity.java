@@ -45,6 +45,9 @@ public class MainActivity extends AppCompatActivity
         waypointLayer.setListener(this);
         mapView.getLayerManager().getLayers().add(waypointLayer);
 
+        FloatingActionButton fabAdd = findViewById(R.id.fabAddWaypoint);
+        fabAdd.setOnClickListener(v -> waypointLayer.addAtCenter());
+
         FloatingActionButton fab = findViewById(R.id.fabDebug);
         fab.setOnClickListener(v -> new DebugSheet(this, this).show());
     }
