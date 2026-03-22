@@ -56,7 +56,7 @@ public class WaypointLayer extends Layer {
     // segments.get(i) = polyline from waypoints[i] to waypoints[i+1]; null while pending
     private final List<Polyline> segments = new ArrayList<>();
 
-    private final Paint startPaint, viaPaint, endPaint, outlinePaint, routePaint;
+    private final Paint startPaint, viaPaint, endPaint, outlinePaint, routePaint, dragLinePaint;
     private final float density;
     private final int   tileSize;
 
@@ -79,6 +79,12 @@ public class WaypointLayer extends Layer {
         routePaint.setColor(Color.argb(220, 0, 100, 255));
         routePaint.setStrokeWidth(dp(5));
         routePaint.setStyle(Style.STROKE);
+
+        dragLinePaint = AndroidGraphicFactory.INSTANCE.createPaint();
+        dragLinePaint.setColor(Color.argb(160, 0, 100, 255));
+        dragLinePaint.setStrokeWidth(dp(2));
+        dragLinePaint.setStyle(Style.STROKE);
+        dragLinePaint.setDashPathEffect(new float[]{dp(10), dp(6)});
     }
 
     public void setListener(Listener l) { listener = l; }
@@ -155,6 +161,15 @@ public class WaypointLayer extends Layer {
 
         long mapSize = MercatorProjection.getMapSize(zoomLevel, tileSize);
         int  radius  = (int) dp(MARKER_RADIUS_DP);
+
+        // Drag line: dashed preview from last waypoint to current crosshair (map centre)
+        LatLong last   = waypoints.get(waypoints.size() - 1);
+        LatLong centre = mapView.getModel().mapViewPosition.getCenter();
+        int lx = (int)(MercatorProjection.longitudeToPixelX(last.longitude,   mapSize) - topLeftPoint.x);
+        int ly = (int)(MercatorProjection.latitudeToPixelY(last.latitude,     mapSize) - topLeftPoint.y);
+        int cx = (int)(MercatorProjection.longitudeToPixelX(centre.longitude, mapSize) - topLeftPoint.x);
+        int cy = (int)(MercatorProjection.latitudeToPixelY(centre.latitude,   mapSize) - topLeftPoint.y);
+        canvas.drawLine(lx, ly, cx, cy, dragLinePaint);
 
         for (int i = 0; i < waypoints.size(); i++) {
             LatLong wp = waypoints.get(i);
