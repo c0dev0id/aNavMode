@@ -1,8 +1,14 @@
 package de.codevoid.aNavMode;
 
+import android.Manifest;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.Choreographer;
 import android.widget.Toast;
+
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -41,6 +47,8 @@ public class MainActivity extends AppCompatActivity
         }
     };
 
+    private static final int REQ_STORAGE = 1;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -50,9 +58,32 @@ public class MainActivity extends AppCompatActivity
         mapView      = findViewById(R.id.mapView);
         mapManager   = new MapManager(this, mapView);
 
+        // READ_EXTERNAL_STORAGE is only needed up to API 32; 33+ uses scoped storage
+        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.S_V2 &&
+                ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
+                        != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, REQ_STORAGE);
+        } else {
+            initMap();
+        }
+
+        panController = new PanController(mapView);
+
+        remoteControl = new RemoteControlManager(this);
+        remoteControl.setListener(this::handleRemoteEvent);
+
+        FloatingActionButton fabAdd = findViewById(R.id.fabAddWaypoint);
+        fabAdd.setOnClickListener(v -> { if (waypointLayer != null) waypointLayer.addAtCenter(); });
+
+        FloatingActionButton fab = findViewById(R.id.fabDebug);
+        fab.setOnClickListener(v -> new DebugSheet(this, this).show());
+    }
+
+    private void initMap() {
         if (!mapManager.loadMap(mapManager.getDefaultMapFile())) {
             Toast.makeText(this,
-                    "No map file. Use Debug → Download Offline Map.",
+                    "No map file. Copy default.map to /sdcard/aNavMode/maps/",
                     Toast.LENGTH_LONG).show();
         }
 
@@ -63,17 +94,17 @@ public class MainActivity extends AppCompatActivity
                 getResources().getDisplayMetrics().density);
         waypointLayer.setListener(this);
         mapView.getLayerManager().getLayers().add(waypointLayer);
+    }
 
-        panController = new PanController(mapView);
-
-        remoteControl = new RemoteControlManager(this);
-        remoteControl.setListener(this::handleRemoteEvent);
-
-        FloatingActionButton fabAdd = findViewById(R.id.fabAddWaypoint);
-        fabAdd.setOnClickListener(v -> waypointLayer.addAtCenter());
-
-        FloatingActionButton fab = findViewById(R.id.fabDebug);
-        fab.setOnClickListener(v -> new DebugSheet(this, this).show());
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQ_STORAGE) {
+            initMap();
+            if (grantResults.length == 0 || grantResults[0] != PackageManager.PERMISSION_GRANTED) {
+                Toast.makeText(this, "Storage permission denied — map unavailable", Toast.LENGTH_LONG).show();
+            }
+        }
     }
 
     private void handleRemoteEvent(RemoteEvent event) {

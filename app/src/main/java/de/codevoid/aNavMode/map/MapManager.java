@@ -1,6 +1,7 @@
 package de.codevoid.aNavMode.map;
 
 import android.content.Context;
+import android.os.Environment;
 
 import org.mapsforge.core.model.LatLong;
 import org.mapsforge.core.model.MapPosition;
@@ -69,9 +70,17 @@ public class MapManager {
         );
     }
 
-    /** Map files live in the app's external files dir — no storage permission needed. */
+    /**
+     * Map file at /sdcard/aNavMode/maps/default.map — survives app reinstall.
+     * Requires READ_EXTERNAL_STORAGE permission (requested at runtime in MainActivity).
+     */
     public File getDefaultMapFile() {
-        return new File(context.getExternalFilesDir(null), "maps/default.map");
+        return new File(Environment.getExternalStorageDirectory(), "aNavMode/maps/default.map");
+    }
+
+    /** POI file alongside the map: /sdcard/aNavMode/maps/default.poi */
+    public File getDefaultPoiFile() {
+        return new File(Environment.getExternalStorageDirectory(), "aNavMode/maps/default.poi");
     }
 
     public void destroy() {

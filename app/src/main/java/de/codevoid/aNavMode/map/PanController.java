@@ -3,7 +3,6 @@ package de.codevoid.aNavMode.map;
 import org.mapsforge.core.model.LatLong;
 import org.mapsforge.core.util.MercatorProjection;
 import org.mapsforge.map.android.view.MapView;
-import org.mapsforge.map.model.MapViewPosition;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -43,6 +42,8 @@ public class PanController {
     private float joyEffectiveMag = 0f;
     // Last non-zero normalised direction, preserved for ramp-down after release.
     private float joyLastDirX = 0f, joyLastDirY = 0f;
+    // Fractional zoom accumulator — applied as integer steps when |acc| >= 1.
+    private float zoomAccumulator = 0f;
 
     public PanController(MapView mapView) {
         this.mapView = mapView;
@@ -157,12 +158,19 @@ public class PanController {
             mapView.getModel().mapViewPosition.setCenter(new LatLong(newLat, newLon));
         }
 
-        // Apply smooth zoom
+        // Apply zoom — accumulate fractional steps, apply as integer level changes
         if (totalZoom != 0f) {
-            MapViewPosition mvp = (MapViewPosition) mapView.getModel().mapViewPosition;
-            double currentZoom = mvp.getZoomLevelDouble();
-            double newZoom     = Math.max(0, Math.min(20, currentZoom + totalZoom));
-            mvp.setZoomLevelDouble(newZoom);
+            zoomAccumulator += totalZoom;
+            while (zoomAccumulator >= 1f) {
+                byte z = mapView.getModel().mapViewPosition.getZoomLevel();
+                mapView.getModel().mapViewPosition.setZoomLevel((byte) Math.min(20, z + 1));
+                zoomAccumulator -= 1f;
+            }
+            while (zoomAccumulator <= -1f) {
+                byte z = mapView.getModel().mapViewPosition.getZoomLevel();
+                mapView.getModel().mapViewPosition.setZoomLevel((byte) Math.max(0, z - 1));
+                zoomAccumulator += 1f;
+            }
         }
 
         return panSpeed;
