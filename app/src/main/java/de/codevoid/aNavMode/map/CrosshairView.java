@@ -3,6 +3,7 @@ package de.codevoid.aNavMode.map;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
+import android.util.AttributeSet;
 import android.view.View;
 
 import androidx.core.content.ContextCompat;
@@ -27,7 +28,11 @@ public class CrosshairView extends View {
     private final Drawable drawable;
 
     public CrosshairView(Context context) {
-        super(context);
+        this(context, null);
+    }
+
+    public CrosshairView(Context context, AttributeSet attrs) {
+        super(context, attrs);
         setClickable(false);
         setFocusable(false);
         float density = context.getResources().getDisplayMetrics().density;
