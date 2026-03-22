@@ -10,24 +10,17 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import org.mapsforge.map.android.graphics.AndroidGraphicFactory;
 import org.mapsforge.map.android.view.MapView;
 
-import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
 import de.codevoid.aNavMode.debug.DebugSheet;
 import de.codevoid.aNavMode.map.MapManager;
-import de.codevoid.aNavMode.map.RouteOverlayManager;
+import de.codevoid.aNavMode.map.WaypointLayer;
 import de.codevoid.aNavMode.routing.BRouterHttpClient;
-import de.codevoid.aNavMode.routing.RoutePoint;
-import de.codevoid.aNavMode.routing.RoutingEngine;
 
-public class MainActivity extends AppCompatActivity implements DebugSheet.Callbacks {
+public class MainActivity extends AppCompatActivity
+        implements DebugSheet.Callbacks, WaypointLayer.Listener {
 
-    private MapView mapView;
-    private MapManager mapManager;
-    private RouteOverlayManager routeOverlay;
-    private RoutingEngine router;
-    private final ExecutorService executor = Executors.newSingleThreadExecutor();
+    private MapView      mapView;
+    private MapManager   mapManager;
+    private WaypointLayer waypointLayer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,21 +28,34 @@ public class MainActivity extends AppCompatActivity implements DebugSheet.Callba
         AndroidGraphicFactory.createInstance(getApplication());
         setContentView(R.layout.activity_main);
 
-        mapView = findViewById(R.id.mapView);
-        mapManager = new MapManager(this, mapView);
-        routeOverlay = new RouteOverlayManager(mapView);
-        router = new BRouterHttpClient();
+        mapView      = findViewById(R.id.mapView);
+        mapManager   = new MapManager(this, mapView);
 
         if (!mapManager.loadMap(mapManager.getDefaultMapFile())) {
             Toast.makeText(this,
-                    "No map file found. Use Debug → Download Offline Map.",
+                    "No map file. Use Debug → Download Offline Map.",
                     Toast.LENGTH_LONG).show();
         }
 
         mapManager.setInitialPosition();
 
+        // WaypointLayer must be added last — it needs to be top of stack to receive taps first
+        waypointLayer = new WaypointLayer(mapView, new BRouterHttpClient(),
+                getResources().getDisplayMetrics().density);
+        waypointLayer.setListener(this);
+        mapView.getLayerManager().getLayers().add(waypointLayer);
+
         FloatingActionButton fab = findViewById(R.id.fabDebug);
         fab.setOnClickListener(v -> new DebugSheet(this, this).show());
+    }
+
+    // --- WaypointLayer.Listener ---
+
+    @Override
+    public void onRoutingFailed(int segmentIndex) {
+        Toast.makeText(this,
+                "Routing failed — is BRouter running?",
+                Toast.LENGTH_LONG).show();
     }
 
     // --- DebugSheet.Callbacks ---
@@ -65,29 +71,13 @@ public class MainActivity extends AppCompatActivity implements DebugSheet.Callba
     }
 
     @Override
-    public void onTestRoute() {
-        // TODO: Replace with real test coordinates inside your loaded map area.
-        // BRouter must be installed and its service running on the device.
-        final double fromLat = 0.0, fromLon = 0.0;
-        final double toLat   = 0.0, toLon   = 0.0;
-
-        executor.execute(() -> {
-            List<RoutePoint> points = router.calculateRoute(fromLat, fromLon, toLat, toLon, "trekking");
-            runOnUiThread(() -> {
-                if (points == null || points.isEmpty()) {
-                    Toast.makeText(this,
-                            "Routing failed — is BRouter running?",
-                            Toast.LENGTH_LONG).show();
-                } else {
-                    routeOverlay.showRoute(points);
-                }
-            });
-        });
+    public void onClearWaypoints() {
+        waypointLayer.clearAll();
     }
 
     @Override
     protected void onDestroy() {
-        executor.shutdownNow();
+        waypointLayer.destroy();
         mapManager.destroy();
         mapView.destroyAll();
         AndroidGraphicFactory.clearResourceMemoryCache();

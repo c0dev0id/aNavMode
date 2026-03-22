@@ -13,7 +13,7 @@ public class DebugSheet {
     public interface Callbacks {
         void onDownloadMap();
         void onUpdateRouteData();
-        void onTestRoute();
+        void onClearWaypoints();
     }
 
     private final BottomSheetDialog dialog;
@@ -30,9 +30,9 @@ public class DebugSheet {
             dialog.dismiss();
             callbacks.onUpdateRouteData();
         });
-        view.findViewById(R.id.btnTestRoute).setOnClickListener(v -> {
+        view.findViewById(R.id.btnClearWaypoints).setOnClickListener(v -> {
             dialog.dismiss();
-            callbacks.onTestRoute();
+            callbacks.onClearWaypoints();
         });
 
         dialog.setContentView(view);

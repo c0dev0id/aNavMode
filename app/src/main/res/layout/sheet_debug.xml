@@ -30,10 +30,10 @@
         android:layout_marginBottom="8dp" />
 
     <Button
-        android:id="@+id/btnTestRoute"
+        android:id="@+id/btnClearWaypoints"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Render Test Route"
+        android:text="Clear Waypoints"
         android:layout_marginBottom="8dp" />
 
 </LinearLayout>

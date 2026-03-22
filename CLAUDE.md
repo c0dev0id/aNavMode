@@ -22,17 +22,23 @@ Single-module Android app (Java, traditional Views). Offline-first: map tiles an
 - **Map:** mapsforge 0.21.0 — renders offline `.map` vector files via `TileRendererLayer`
 - **Routing:** BRouter via its localhost HTTP server (`localhost:17777`); requires BRouter app installed on device. `RoutingEngine` interface makes the backend swappable.
 
-**Layer structure in `MapView`:** base `TileRendererLayer` (offline tiles) + `Polyline` overlay for routes (managed by `RouteOverlayManager`).
+**Layer structure in `MapView`** (order matters — taps handled top-to-bottom in reverse):
+1. `TileRendererLayer` — offline tile rendering
+2. Route `Polyline`s — inserted dynamically by `WaypointLayer` just below itself
+3. `WaypointLayer` — always last; draws markers, handles all map taps
+
+**Interaction model** (brouter-web style):
+- Tap empty map → add waypoint; auto-routes each new segment via BRouter
+- Tap an existing waypoint marker → removes it and re-routes affected segments
+- Green = start, blue = via, red = end; segments routed serially (one at a time)
 
 **Offline data paths** (no storage permission needed — app-specific external dir):
 - Map file: `{externalFilesDir}/maps/default.map`
 - BRouter segments: managed by BRouter app itself
 
-**Debug FAB** (bottom-right) opens a `BottomSheetDialog` (`DebugSheet`) with stubs for map downloader, BRouter segment updater, and test route rendering.
+**Debug FAB** (bottom-right) opens a `BottomSheetDialog` (`DebugSheet`) with stubs for map downloader, BRouter segment updater, and Clear Waypoints.
 
-**Two TODOs to fill in before first run:**
-1. `MapManager.setInitialPosition()` — set target lat/lon/zoom
-2. `MainActivity.onTestRoute()` — set test route start/end coordinates
+**TODO before first run:** `MapManager.setInitialPosition()` — set target lat/lon/zoom.
 
 ## CI/CD
 
