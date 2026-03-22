@@ -82,7 +82,7 @@ jobs:
             echo "::error::No APK found at expected paths."
             exit 1
           fi
-          DEST="app/build/outputs/apk/release/__TEMPLATE_NAME__-${VERSION}.apk"
+          DEST="app/build/outputs/apk/release/aNavMode-${VERSION}.apk"
           mv "$APK_SOURCE" "$DEST"
           echo "apk_path=$DEST" >> "$GITHUB_OUTPUT"
 
