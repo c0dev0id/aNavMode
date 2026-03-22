@@ -27,5 +27,5 @@ Entry point is `MainActivity.kt` — a single Compose activity. Theme is defined
 Three GitHub Actions workflows:
 
 - **build.yml** — triggered on push to `main` or PR labeled `run-build`; runs lint → assembleDebug → sign
-- **release.yml** — manual dispatch; auto-increments patch version from latest git tag, builds signed release APK, creates a GitHub release draft. Requires secrets: `SIGNING_KEYSTORE_BASE64`, `SIGNING_KEYSTORE_PASSWORD`, `SIGNING_KEY_ALIAS`, `SIGNING_KEY_PASSWORD`. The APK is named `aNavMode-${VERSION}.apk` (the `aNavMode` placeholder in this file still needs to be updated to `aNavMode`).
+- **release.yml** — manual dispatch; auto-increments patch version from latest git tag, builds signed release APK, creates a GitHub release draft. Requires secrets: `SIGNING_KEYSTORE_BASE64`, `SIGNING_KEYSTORE_PASSWORD`, `SIGNING_KEY_ALIAS`, `SIGNING_KEY_PASSWORD`. Note: the APK rename step still references the original `__TEMPLATE_NAME__` placeholder (`.yml` files were excluded from template substitution) — update it to `aNavMode` before cutting a release.
 - **template-setup.yml** — one-time initialization on fork; already ran (commit `3a44f55`)
