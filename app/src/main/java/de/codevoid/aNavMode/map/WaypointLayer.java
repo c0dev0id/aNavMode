@@ -130,6 +130,10 @@ public class WaypointLayer extends Layer {
         requestRedraw();
     }
 
+    public void removeLastWaypoint() {
+        if (!waypoints.isEmpty()) removeWaypoint(waypoints.size() - 1);
+    }
+
     public void clearAll() {
         waypoints.clear();
         for (Polyline p : segments) {

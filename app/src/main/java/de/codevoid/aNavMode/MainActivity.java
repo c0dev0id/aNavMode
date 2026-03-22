@@ -1,6 +1,7 @@
 package de.codevoid.aNavMode;
 
 import android.os.Bundle;
+import android.view.Choreographer;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -12,15 +13,33 @@ import org.mapsforge.map.android.view.MapView;
 
 import de.codevoid.aNavMode.debug.DebugSheet;
 import de.codevoid.aNavMode.map.MapManager;
+import de.codevoid.aNavMode.map.PanController;
 import de.codevoid.aNavMode.map.WaypointLayer;
+import de.codevoid.aNavMode.remote.RemoteControlManager;
+import de.codevoid.aNavMode.remote.RemoteEvent;
 import de.codevoid.aNavMode.routing.BRouterHttpClient;
 
 public class MainActivity extends AppCompatActivity
         implements DebugSheet.Callbacks, WaypointLayer.Listener {
 
-    private MapView      mapView;
-    private MapManager   mapManager;
-    private WaypointLayer waypointLayer;
+    private MapView               mapView;
+    private MapManager            mapManager;
+    private WaypointLayer         waypointLayer;
+    private RemoteControlManager  remoteControl;
+    private PanController         panController;
+
+    private final Choreographer.FrameCallback frameCallback = new Choreographer.FrameCallback() {
+        private long lastFrameNanos = 0;
+
+        @Override
+        public void doFrame(long frameTimeNanos) {
+            if (lastFrameNanos != 0) {
+                panController.onFrame(frameTimeNanos, frameTimeNanos - lastFrameNanos);
+            }
+            lastFrameNanos = frameTimeNanos;
+            Choreographer.getInstance().postFrameCallback(this);
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,11 +64,48 @@ public class MainActivity extends AppCompatActivity
         waypointLayer.setListener(this);
         mapView.getLayerManager().getLayers().add(waypointLayer);
 
+        panController = new PanController(mapView);
+
+        remoteControl = new RemoteControlManager(this);
+        remoteControl.setListener(this::handleRemoteEvent);
+
         FloatingActionButton fabAdd = findViewById(R.id.fabAddWaypoint);
         fabAdd.setOnClickListener(v -> waypointLayer.addAtCenter());
 
         FloatingActionButton fab = findViewById(R.id.fabDebug);
         fab.setOnClickListener(v -> new DebugSheet(this, this).show());
+    }
+
+    private void handleRemoteEvent(RemoteEvent event) {
+        if (event instanceof RemoteEvent.ShortPress) {
+            RemoteEvent.ShortPress e = (RemoteEvent.ShortPress) event;
+            switch (e.key) {
+                case CONFIRM: waypointLayer.addAtCenter();        break;
+                case BACK:    waypointLayer.removeLastWaypoint(); break;
+                default: break;
+            }
+        } else if (event instanceof RemoteEvent.KeyDown) {
+            panController.onKeyDown(((RemoteEvent.KeyDown) event).key);
+        } else if (event instanceof RemoteEvent.KeyUp) {
+            panController.onKeyUp(((RemoteEvent.KeyUp) event).key);
+        } else if (event instanceof RemoteEvent.JoyInput) {
+            RemoteEvent.JoyInput e = (RemoteEvent.JoyInput) event;
+            panController.onJoyInput(e.dx, e.dy);
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        remoteControl.register();
+        Choreographer.getInstance().postFrameCallback(frameCallback);
+    }
+
+    @Override
+    protected void onPause() {
+        remoteControl.unregister();
+        Choreographer.getInstance().removeFrameCallback(frameCallback);
+        super.onPause();
     }
 
     // --- WaypointLayer.Listener ---
