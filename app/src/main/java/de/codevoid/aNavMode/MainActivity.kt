@@ -1,4 +1,4 @@
-package de.codevoid.__TEMPLATE_NAME__
+package de.codevoid.aNavMode
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -31,7 +31,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun Greeting() {
     Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
-        Text(text = "Hello, __TEMPLATE_NAME__!")
+        Text(text = "Hello, aNavMode!")
     }
 }
 
