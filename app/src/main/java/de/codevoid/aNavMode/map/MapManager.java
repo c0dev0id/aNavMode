@@ -36,24 +36,28 @@ public class MapManager {
     public boolean loadMap(File mapFile) {
         if (!mapFile.exists()) return false;
 
-        tileCache = AndroidUtil.createTileCache(
-                context,
-                "maincache",
-                mapView.getModel().displayModel.getTileSize(),
-                1f,
-                mapView.getModel().frameBufferModel.getOverdrawFactor()
-        );
+        try {
+            tileCache = AndroidUtil.createTileCache(
+                    context,
+                    "maincache",
+                    mapView.getModel().displayModel.getTileSize(),
+                    1f,
+                    mapView.getModel().frameBufferModel.getOverdrawFactor()
+            );
 
-        MapDataStore mapDataStore = new MapFile(mapFile);
-        tileLayer = new TileRendererLayer(
-                tileCache,
-                mapDataStore,
-                mapView.getModel().mapViewPosition,
-                AndroidGraphicFactory.INSTANCE
-        );
-        tileLayer.setXmlRenderTheme(InternalRenderTheme.DEFAULT);
-        mapView.getLayerManager().getLayers().add(tileLayer);
-        return true;
+            MapDataStore mapDataStore = new MapFile(mapFile);
+            tileLayer = new TileRendererLayer(
+                    tileCache,
+                    mapDataStore,
+                    mapView.getModel().mapViewPosition,
+                    AndroidGraphicFactory.INSTANCE
+            );
+            tileLayer.setXmlRenderTheme(InternalRenderTheme.DEFAULT);
+            mapView.getLayerManager().getLayers().add(tileLayer);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     /**
