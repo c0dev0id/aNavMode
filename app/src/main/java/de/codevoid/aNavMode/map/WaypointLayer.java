@@ -165,11 +165,11 @@ public class WaypointLayer extends Layer {
         // Drag line: dashed preview from last waypoint to current crosshair (map centre)
         LatLong last   = waypoints.get(waypoints.size() - 1);
         LatLong centre = mapView.getModel().mapViewPosition.getCenter();
-        int lx = (int)(MercatorProjection.longitudeToPixelX(last.longitude,   mapSize) - topLeftPoint.x);
-        int ly = (int)(MercatorProjection.latitudeToPixelY(last.latitude,     mapSize) - topLeftPoint.y);
-        int cx = (int)(MercatorProjection.longitudeToPixelX(centre.longitude, mapSize) - topLeftPoint.x);
-        int cy = (int)(MercatorProjection.latitudeToPixelY(centre.latitude,   mapSize) - topLeftPoint.y);
-        canvas.drawLine(lx, ly, cx, cy, dragLinePaint);
+        int dragX1 = (int)(MercatorProjection.longitudeToPixelX(last.longitude,   mapSize) - topLeftPoint.x);
+        int dragY1 = (int)(MercatorProjection.latitudeToPixelY(last.latitude,     mapSize) - topLeftPoint.y);
+        int dragX2 = (int)(MercatorProjection.longitudeToPixelX(centre.longitude, mapSize) - topLeftPoint.x);
+        int dragY2 = (int)(MercatorProjection.latitudeToPixelY(centre.latitude,   mapSize) - topLeftPoint.y);
+        canvas.drawLine(dragX1, dragY1, dragX2, dragY2, dragLinePaint);
 
         for (int i = 0; i < waypoints.size(); i++) {
             LatLong wp = waypoints.get(i);
