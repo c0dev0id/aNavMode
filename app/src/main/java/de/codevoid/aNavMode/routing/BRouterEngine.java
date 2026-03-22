@@ -14,6 +14,7 @@ import java.util.List;
 
 import btools.router.OsmNodeNamed;
 import btools.router.OsmPathElement;
+import btools.router.OsmTrack;
 import btools.router.RoutingContext;
 import btools.router.RoutingEngine;
 
@@ -75,24 +76,24 @@ public class BRouterEngine implements de.codevoid.aNavMode.routing.RoutingEngine
             RoutingContext rc = new RoutingContext();
             rc.localFunction = profileFile.getAbsolutePath();
 
-            RoutingEngine engine = new RoutingEngine(
+            ExposedRoutingEngine engine = new ExposedRoutingEngine(
                     null, null, segmentDir, waypoints, rc);
             engine.quite = true;
             engine.start();
             engine.join(60_000); // max 60 s per segment
 
-            if (engine.errorMessage != null) {
-                Log.w(TAG, "BRouter error: " + engine.errorMessage);
+            if (engine.getErrorMessage() != null) {
+                Log.w(TAG, "BRouter error: " + engine.getErrorMessage());
                 return null;
             }
 
-            List<OsmPathElement> nodes = engine.foundTrack.nodes;
+            List<OsmPathElement> nodes = engine.getFoundTrack().nodes;
             if (nodes == null || nodes.isEmpty()) return null;
 
             List<RoutePoint> result = new ArrayList<>(nodes.size());
             for (OsmPathElement node : nodes) {
-                double lat = node.ilat / 1_000_000.0 - 90.0;
-                double lon = node.ilon / 1_000_000.0 - 180.0;
+                double lat = node.getILat() / 1_000_000.0 - 90.0;
+                double lon = node.getILon() / 1_000_000.0 - 180.0;
                 result.add(new RoutePoint(lat, lon));
             }
             return result;
@@ -130,5 +131,15 @@ public class BRouterEngine implements de.codevoid.aNavMode.routing.RoutingEngine
         n.ilon = (int) ((lon + 180.0) * 1_000_000.0 + 0.5);
         n.ilat = (int) ((lat +  90.0) * 1_000_000.0 + 0.5);
         return n;
+    }
+
+    /** Subclass solely to expose protected fields of RoutingEngine. */
+    private static final class ExposedRoutingEngine extends RoutingEngine {
+        ExposedRoutingEngine(String out, String log, File seg,
+                             List<OsmNodeNamed> wp, RoutingContext rc) {
+            super(out, log, seg, wp, rc);
+        }
+        String getErrorMessage() { return errorMessage; }
+        OsmTrack getFoundTrack() { return foundTrack; }
     }
 }
