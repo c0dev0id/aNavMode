@@ -27,7 +27,7 @@ import de.codevoid.aNavMode.map.PanController;
 import de.codevoid.aNavMode.map.WaypointLayer;
 import de.codevoid.aNavMode.remote.RemoteControlManager;
 import de.codevoid.aNavMode.remote.RemoteEvent;
-import de.codevoid.aNavMode.routing.BRouterHttpClient;
+import de.codevoid.aNavMode.routing.BRouterEngine;
 
 public class MainActivity extends AppCompatActivity
         implements DebugSheet.Callbacks, WaypointLayer.Listener {
@@ -86,7 +86,7 @@ public class MainActivity extends AppCompatActivity
         mapManager.setInitialPosition();
 
         // WaypointLayer must be added last — it needs to be top of stack to receive taps first
-        waypointLayer = new WaypointLayer(mapView, new BRouterHttpClient(),
+        waypointLayer = new WaypointLayer(mapView, new BRouterEngine(this),
                 getResources().getDisplayMetrics().density);
         waypointLayer.setListener(this);
         mapView.getLayerManager().getLayers().add(waypointLayer);
