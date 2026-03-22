@@ -3,6 +3,7 @@ package de.codevoid.aNavMode.map;
 import org.mapsforge.core.model.LatLong;
 import org.mapsforge.core.util.MercatorProjection;
 import org.mapsforge.map.android.view.MapView;
+import org.mapsforge.map.model.MapViewPosition;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -158,9 +159,10 @@ public class PanController {
 
         // Apply smooth zoom
         if (totalZoom != 0f) {
-            double currentZoom = mapView.getModel().mapViewPosition.getZoomLevelDouble();
+            MapViewPosition mvp = (MapViewPosition) mapView.getModel().mapViewPosition;
+            double currentZoom = mvp.getZoomLevelDouble();
             double newZoom     = Math.max(0, Math.min(20, currentZoom + totalZoom));
-            mapView.getModel().mapViewPosition.setZoomLevelDouble(newZoom);
+            mvp.setZoomLevelDouble(newZoom);
         }
 
         return panSpeed;
