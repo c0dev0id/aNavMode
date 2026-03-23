@@ -23,6 +23,7 @@ import org.mapsforge.map.android.view.MapView;
 
 import de.codevoid.aNavMode.debug.DebugSheet;
 import de.codevoid.aNavMode.download.DownloadCatalog;
+import de.codevoid.aNavMode.download.DownloadDomain;
 import de.codevoid.aNavMode.download.RegionDetector;
 import de.codevoid.aNavMode.map.LocationHelper;
 import de.codevoid.aNavMode.map.MapManager;
@@ -114,6 +115,9 @@ public class MainActivity extends AppCompatActivity
             try {
                 DownloadCatalog catalog = new DownloadCatalog(this);
                 DownloadCatalog.Catalog c = catalog.load();
+                if (DownloadDomain.getInstance() == null) {
+                    new DownloadDomain(MainActivity.this, c);
+                }
                 RegionDetector detector = new RegionDetector(c.regions);
                 detector.setListener(new RegionDetector.Listener() {
                     @Override public void onEnter(DownloadCatalog.Region r) {
