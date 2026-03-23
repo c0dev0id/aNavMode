@@ -2,12 +2,12 @@ package de.codevoid.aNavMode.map;
 
 import android.content.Context;
 import android.location.Location;
-import android.os.CancellationSignal;
 
 import com.google.android.gms.location.CurrentLocationRequest;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.Priority;
+import com.google.android.gms.tasks.CancellationTokenSource;
 
 /**
  * One-shot location fetch using the Fused Location Provider.
@@ -23,7 +23,7 @@ public class LocationHelper {
     }
 
     private final FusedLocationProviderClient client;
-    private CancellationSignal cancellationSignal;
+    private CancellationTokenSource cancellationTokenSource;
 
     public LocationHelper(Context context) {
         client = LocationServices.getFusedLocationProviderClient(context);
@@ -43,14 +43,14 @@ public class LocationHelper {
 
     @SuppressWarnings("MissingPermission")
     private void fetchFresh(Callback callback) {
-        cancellationSignal = new CancellationSignal();
+        cancellationTokenSource = new CancellationTokenSource();
         CurrentLocationRequest request = new CurrentLocationRequest.Builder()
                 .setPriority(Priority.PRIORITY_HIGH_ACCURACY)
                 .setMaxUpdateAgeMillis(10_000)
                 .setDurationMillis(10_000)
                 .build();
 
-        client.getCurrentLocation(request, cancellationSignal)
+        client.getCurrentLocation(request, cancellationTokenSource.getToken())
                 .addOnSuccessListener(location -> {
                     if (location != null) {
                         callback.onLocation(location.getLatitude(), location.getLongitude());
@@ -59,9 +59,9 @@ public class LocationHelper {
     }
 
     public void cancel() {
-        if (cancellationSignal != null) {
-            cancellationSignal.cancel();
-            cancellationSignal = null;
+        if (cancellationTokenSource != null) {
+            cancellationTokenSource.cancel();
+            cancellationTokenSource = null;
         }
     }
 }
