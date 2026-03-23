@@ -27,7 +27,8 @@ import de.codevoid.aNavMode.download.DownloadCatalog;
  */
 public class RegionOverlayLayer extends Layer {
 
-    // Fully visible below this zoom; fades linearly up to ZOOM_HIDDEN.
+    // Invisible below ZOOM_MIN; fades in to ZOOM_FULL; fades out to ZOOM_HIDDEN.
+    private static final int ZOOM_MIN    = 5;
     private static final int ZOOM_FULL   = 7;
     private static final int ZOOM_HIDDEN = 10;
 
@@ -74,15 +75,15 @@ public class RegionOverlayLayer extends Layer {
     @Override
     public void draw(BoundingBox boundingBox, byte zoomLevel, Canvas canvas, Point topLeftPoint) {
         int zoom = zoomLevel & 0xFF;
-        if (zoom >= ZOOM_HIDDEN) return;
+        if (zoom < ZOOM_MIN || zoom >= ZOOM_HIDDEN) return;
 
         List<DownloadCatalog.Region> snap = regions;
         if (snap.isEmpty()) return;
 
-        // Linear fade: full opacity at ZOOM_FULL and below, zero at ZOOM_HIDDEN.
+        // Fade in from ZOOM_MIN→ZOOM_FULL, full at ZOOM_FULL, fade out to ZOOM_HIDDEN.
         int alpha;
         if (zoom <= ZOOM_FULL) {
-            alpha = 200;
+            alpha = 200 * (zoom - ZOOM_MIN) / (ZOOM_FULL - ZOOM_MIN);
         } else {
             alpha = 200 - (zoom - ZOOM_FULL) * 200 / (ZOOM_HIDDEN - ZOOM_FULL);
         }
