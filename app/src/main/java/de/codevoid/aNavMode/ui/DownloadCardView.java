@@ -195,8 +195,8 @@ public class DownloadCardView extends LinearLayout {
         return bps + " B/s";
     }
 
-    private float dp(int dp) {
-        return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp,
+    private int dp(int dp) {
+        return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp,
                 getResources().getDisplayMetrics());
     }
 }

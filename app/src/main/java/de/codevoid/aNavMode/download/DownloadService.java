@@ -99,7 +99,7 @@ public class DownloadService extends Service implements DownloadDomain.Listener 
 
     private Notification buildNotification(String title, long done, long total) {
         NotificationCompat.Builder b = new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_launcher_foreground)
+                .setSmallIcon(R.drawable.ic_crosshair_center)
                 .setContentTitle(title)
                 .setOngoing(true)
                 .setOnlyAlertOnce(true);
