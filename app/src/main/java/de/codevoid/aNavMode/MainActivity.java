@@ -82,18 +82,12 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void initMap() {
-        if (!mapManager.loadMap(mapManager.getDefaultMapFile())) {
-            Toast.makeText(this,
-                    "No map file. Copy default.map to /sdcard/aNavMode/maps/",
-                    Toast.LENGTH_LONG).show();
-        }
-
         mapManager.setInitialPosition();
 
-        // RoutingDomain owns all routing state and the BRouter executor
+        // Domain and layer are ready immediately; map tiles stream in once the file is open
         routingDomain = new RoutingDomain(new BRouterEngine(this), mapView);
 
-        // WaypointLayer must be added last — it needs to be top of stack to receive taps first
+        // WaypointLayer must be the last (topmost) layer so it receives taps first
         waypointLayer = new WaypointLayer(mapView, routingDomain,
                 getResources().getDisplayMetrics().density);
         waypointLayer.setFailureListener(this);
@@ -101,6 +95,17 @@ public class MainActivity extends AppCompatActivity
 
         locationHelper = new LocationHelper(this);
         locateAndCenter();
+
+        // Load the map file off the main thread; tile layer is inserted at index 0 when ready
+        mapManager.loadMapAsync(mapManager.getDefaultMapFile(), new MapManager.LoadCallback() {
+            @Override public void onLoaded() { /* tile layer already live */ }
+
+            @Override public void onError(String reason) {
+                runOnUiThread(() -> Toast.makeText(MainActivity.this,
+                        "No map file. Copy default.map to /sdcard/aNavMode/maps/",
+                        Toast.LENGTH_LONG).show());
+            }
+        });
     }
 
     private void locateAndCenter() {

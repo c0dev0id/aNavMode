@@ -29,35 +29,52 @@ public class MapManager {
         mapView.getMapScaleBar().setVisible(true);
     }
 
+    public interface LoadCallback {
+        /** Called from the background thread once the tile layer is live. */
+        void onLoaded();
+        /** Called from the background thread on any failure. */
+        void onError(String reason);
+    }
+
     /**
-     * Load an offline mapsforge .map file and add it as the base tile layer.
-     * @return false if the file does not exist yet
+     * Opens the map file and adds the tile layer in the background.
+     * The tile layer is inserted at index 0 (below all other layers).
+     * Callback is invoked from the background thread — use runOnUiThread for UI updates.
      */
-    public boolean loadMap(File mapFile) {
-        if (!mapFile.exists()) return false;
+    public void loadMapAsync(File mapFile, LoadCallback callback) {
+        new Thread(() -> {
+            if (!mapFile.exists()) {
+                callback.onError("file not found");
+                return;
+            }
+            try {
+                TileCache cache = AndroidUtil.createTileCache(
+                        context,
+                        "maincache",
+                        mapView.getModel().displayModel.getTileSize(),
+                        1f,
+                        mapView.getModel().frameBufferModel.getOverdrawFactor()
+                );
 
-        try {
-            tileCache = AndroidUtil.createTileCache(
-                    context,
-                    "maincache",
-                    mapView.getModel().displayModel.getTileSize(),
-                    1f,
-                    mapView.getModel().frameBufferModel.getOverdrawFactor()
-            );
+                MapDataStore mapDataStore = new MapFile(mapFile);
+                TileRendererLayer layer = new TileRendererLayer(
+                        cache,
+                        mapDataStore,
+                        mapView.getModel().mapViewPosition,
+                        AndroidGraphicFactory.INSTANCE
+                );
+                layer.setXmlRenderTheme(InternalRenderTheme.DEFAULT);
 
-            MapDataStore mapDataStore = new MapFile(mapFile);
-            tileLayer = new TileRendererLayer(
-                    tileCache,
-                    mapDataStore,
-                    mapView.getModel().mapViewPosition,
-                    AndroidGraphicFactory.INSTANCE
-            );
-            tileLayer.setXmlRenderTheme(InternalRenderTheme.DEFAULT);
-            mapView.getLayerManager().getLayers().add(tileLayer);
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
+                // Insert below all other layers; LayerManager is synchronized
+                mapView.getLayerManager().getLayers().add(0, layer);
+
+                tileCache = cache;
+                tileLayer  = layer;
+                callback.onLoaded();
+            } catch (Exception e) {
+                callback.onError(e.getMessage());
+            }
+        }, "map-loader").start();
     }
 
     /**
