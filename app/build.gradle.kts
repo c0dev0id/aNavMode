@@ -12,7 +12,12 @@ android {
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
-        buildConfigField("long", "BUILD_TIME", "${System.currentTimeMillis()}L")
+        buildConfigField("long",   "BUILD_TIME", "${System.currentTimeMillis()}L")
+        val gitHash = try {
+            val p = Runtime.getRuntime().exec(arrayOf("git", "rev-parse", "--short=7", "HEAD"))
+            p.inputStream.bufferedReader().readLine()?.trim() ?: "unknown"
+        } catch (e: Exception) { "unknown" }
+        buildConfigField("String", "GIT_HASH", "\"$gitHash\"")
         buildConfigField("String", "MIRROR_USER", "\"${project.findProperty("MAPMIRROR_USER") ?: ""}\"")
         buildConfigField("String", "MIRROR_KEY",  "\"${project.findProperty("MAPMIRROR_KEY")  ?: ""}\"")
     }

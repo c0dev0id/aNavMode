@@ -29,11 +29,13 @@ public class UpdateChecker {
 
     public static class Release {
         public final String name;
+        public final String assetName;
         public final String downloadUrl;
         public final long publishedMs;
 
-        Release(String name, String downloadUrl, long publishedMs) {
+        Release(String name, String assetName, String downloadUrl, long publishedMs) {
             this.name = name;
+            this.assetName = assetName;
             this.downloadUrl = downloadUrl;
             this.publishedMs = publishedMs;
         }
@@ -87,9 +89,11 @@ public class UpdateChecker {
 
                 JSONArray assets = json.getJSONArray("assets");
                 String downloadUrl = null;
+                String assetName   = null;
                 for (int i = 0; i < assets.length(); i++) {
                     JSONObject asset = assets.getJSONObject(i);
                     if (asset.getString("name").endsWith(".apk")) {
+                        assetName   = asset.getString("name");
                         downloadUrl = asset.getString("browser_download_url");
                         break;
                     }
@@ -100,7 +104,8 @@ public class UpdateChecker {
                     return;
                 }
 
-                Release release = new Release(name, downloadUrl, publishedMs);
+                final String finalAssetName = assetName;
+                Release release = new Release(name, finalAssetName, downloadUrl, publishedMs);
                 MAIN.post(() -> callback.onResult(release, null));
 
             } catch (Exception e) {

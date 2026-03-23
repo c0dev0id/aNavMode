@@ -40,29 +40,31 @@ public class DebugSheet {
         Button btnUpdate = view.findViewById(R.id.btnCheckUpdate);
         TextView tvStatus = view.findViewById(R.id.tvUpdateStatus);
 
+        String installedFile = "aNavMode-nightly-" + de.codevoid.aNavMode.BuildConfig.GIT_HASH + ".apk";
+        tvStatus.setVisibility(View.VISIBLE);
+        tvStatus.setText("installed: " + installedFile);
+
         btnUpdate.setOnClickListener(v -> {
             btnUpdate.setEnabled(false);
             btnUpdate.setText("Checking…");
-            tvStatus.setVisibility(View.GONE);
+            tvStatus.setText("installed: " + installedFile + "\nchecking…");
 
             UpdateChecker.check((release, error) -> {
                 btnUpdate.setEnabled(true);
                 btnUpdate.setText("Check for Update");
 
                 if (error != null) {
-                    tvStatus.setVisibility(View.VISIBLE);
-                    tvStatus.setText("Error: " + error);
+                    tvStatus.setText("installed: " + installedFile + "\nError: " + error);
                     return;
                 }
 
+                String availFile = release.assetName != null ? release.assetName : release.name;
                 if (!release.isNewerThanThisBuild()) {
-                    tvStatus.setVisibility(View.VISIBLE);
-                    tvStatus.setText("Already up to date (" + release.name + ")");
+                    tvStatus.setText("installed: " + installedFile + "\navailable: " + availFile + " (up to date)");
                     return;
                 }
 
-                tvStatus.setVisibility(View.VISIBLE);
-                tvStatus.setText("Update available: " + release.name + "\nTap to download…");
+                tvStatus.setText("installed: " + installedFile + "\navailable: " + availFile);
                 btnUpdate.setText("Download & Install");
                 btnUpdate.setOnClickListener(dv -> startDownload(context, btnUpdate, tvStatus, release));
             });
