@@ -69,8 +69,12 @@ public class BRouterEngine implements de.codevoid.aNavMode.routing.RoutingEngine
             }
 
             List<OsmNodeNamed> waypoints = new ArrayList<>(2);
-            waypoints.add(makeNode(fromLon, fromLat));
-            waypoints.add(makeNode(toLon, toLat));
+            OsmNodeNamed from = makeNode(fromLon, fromLat);
+            from.name = "from";
+            OsmNodeNamed to = makeNode(toLon, toLat);
+            to.name = "to";
+            waypoints.add(from);
+            waypoints.add(to);
 
             RoutingContext rc = new RoutingContext();
             rc.localFunction = profileFile.getAbsolutePath();
