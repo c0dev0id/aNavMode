@@ -58,7 +58,6 @@ public class DownloadDomain {
     private static String buildAuth() {
         String user = de.codevoid.aNavMode.BuildConfig.MIRROR_USER;
         String key  = de.codevoid.aNavMode.BuildConfig.MIRROR_KEY;
-        android.util.Log.d(TAG, "buildAuth: user.len=" + user.length() + " key.len=" + key.length());
         if (user.isEmpty() || key.isEmpty()) return null;
         return "Basic " + java.util.Base64.getEncoder()
                 .encodeToString((user + ":" + key).getBytes());
@@ -67,7 +66,6 @@ public class DownloadDomain {
     private static final String TAG            = "DownloadDomain";
     private static final String PREFS_NAME     = "download";
     private static final String PREF_MOBILE    = "allow_mobile_data";
-    private static final String PREF_QUEUE     = "queue";
     private static final int    CONNECT_MS     = 10_000;
     private static final int    READ_MS        = 60_000;
     private static final int    BUF            = 32_768;
@@ -171,11 +169,26 @@ public class DownloadDomain {
         restoreQueue();
     }
 
+    /**
+     * On startup, scan for local .meta files. Any region that has at least one
+     * meta file present was previously enqueued but not completed — restore it.
+     */
     private void restoreQueue() {
-        String saved = prefs.getString(PREF_QUEUE, "");
-        if (saved.isEmpty()) return;
-        for (String id : saved.split(",")) {
-            if (!id.isEmpty()) queueIds.add(id);
+        for (DownloadCatalog.Region region : catalog.regions) {
+            for (DownloadCatalog.CatalogFile f : region.files) {
+                if (localMetaFile(f.path).exists()) {
+                    queueIds.add(region.id);
+                    break;
+                }
+            }
+            if (queueIds.contains(region.id)) continue;
+            for (String coord : region.tiles) {
+                DownloadCatalog.Tile tile = catalog.tiles.get(coord);
+                if (tile != null && localMetaFile(tile.path).exists()) {
+                    queueIds.add(region.id);
+                    break;
+                }
+            }
         }
         if (!queueIds.isEmpty()) {
             executor.execute(() -> {
@@ -188,8 +201,74 @@ public class DownloadDomain {
         }
     }
 
-    private void saveQueue() {
-        prefs.edit().putString(PREF_QUEUE, String.join(",", queueIds)).apply();
+    private File localMetaFile(String mirrorPath) {
+        return new File(context.getFilesDir(), "meta/" + mirrorPath + ".meta");
+    }
+
+    /** Downloads the .meta file for mirrorPath into local meta storage. Best-effort. */
+    private void fetchMeta(String mirrorPath) {
+        String url = MIRROR_BASE + "/" + mirrorPath + ".meta";
+        File dest = localMetaFile(mirrorPath);
+        dest.getParentFile().mkdirs();
+        try {
+            HttpURLConnection conn = open(url);
+            conn.connect();
+            if (conn.getResponseCode() != HttpURLConnection.HTTP_OK) {
+                conn.disconnect();
+                return;
+            }
+            try (InputStream  in  = conn.getInputStream();
+                 FileOutputStream out = new FileOutputStream(dest)) {
+                byte[] buf = new byte[256];
+                int n;
+                while ((n = in.read(buf)) != -1) out.write(buf, 0, n);
+            } finally {
+                conn.disconnect();
+            }
+        } catch (Exception ignored) {}
+    }
+
+    /**
+     * Fetches the server's current .meta for mirrorPath and compares with the
+     * locally stored one. Returns true if they match (safe to resume) or if
+     * either side is unavailable (assume safe). Returns false if they differ
+     * (server file was updated — discard partial).
+     */
+    private boolean isMetaValid(String mirrorPath) {
+        File localMeta = localMetaFile(mirrorPath);
+        if (!localMeta.exists()) return true;
+        try {
+            String url = MIRROR_BASE + "/" + mirrorPath + ".meta";
+            HttpURLConnection conn = open(url);
+            conn.connect();
+            if (conn.getResponseCode() != HttpURLConnection.HTTP_OK) {
+                conn.disconnect();
+                return true; // can't check → assume valid
+            }
+            StringBuilder sb = new StringBuilder();
+            try (java.io.BufferedReader r = new java.io.BufferedReader(
+                    new java.io.InputStreamReader(conn.getInputStream()))) {
+                String line;
+                while ((line = r.readLine()) != null) sb.append(line).append('\n');
+            } finally {
+                conn.disconnect();
+            }
+            String serverContent = sb.toString().trim();
+            String localContent  = new String(
+                    java.nio.file.Files.readAllBytes(localMeta.toPath())).trim();
+            return serverContent.equals(localContent);
+        } catch (Exception e) {
+            return true; // network error → assume valid, proceed with resume
+        }
+    }
+
+    /** Deletes all local .meta files for a region (called on completion or cancel). */
+    private void clearMeta(DownloadCatalog.Region region) {
+        for (DownloadCatalog.CatalogFile f : region.files) localMetaFile(f.path).delete();
+        for (String coord : region.tiles) {
+            DownloadCatalog.Tile tile = catalog.tiles.get(coord);
+            if (tile != null) localMetaFile(tile.path).delete();
+        }
     }
 
     public static DownloadDomain getInstance() { return instance; }
@@ -242,8 +321,16 @@ public class DownloadDomain {
     public void enqueue(String regionId) {
         executor.execute(() -> {
             if (queueIds.contains(regionId)) return;
+            // Fetch meta files immediately — their presence on disk is the queue ledger.
+            DownloadCatalog.Region region = findRegion(regionId);
+            if (region != null) {
+                for (DownloadCatalog.CatalogFile f : region.files) fetchMeta(f.path);
+                for (String coord : region.tiles) {
+                    DownloadCatalog.Tile tile = catalog.tiles.get(coord);
+                    if (tile != null) fetchMeta(tile.path);
+                }
+            }
             queueIds.add(regionId);
-            saveQueue();
             publishState();
             if (!processing) {
                 processing = true;
@@ -289,8 +376,9 @@ public class DownloadDomain {
             activeBytesDownloaded = 0;
             activeFile            = null;
             speedBytesPerSec      = 0;
-            queueIds.remove(0);
-            saveQueue();
+            String doneId = queueIds.remove(0);
+            DownloadCatalog.Region doneRegion = findRegion(doneId);
+            if (doneRegion != null) clearMeta(doneRegion);
             publishState();
         }
     }
@@ -298,7 +386,7 @@ public class DownloadDomain {
     private void downloadRegion(String regionId) throws Exception {
         Log.d(TAG, "downloadRegion start: " + regionId);
         if (!isNetworkOk()) throw new IOException("no suitable network");
-        Log.d(TAG, "network ok, mobile=" + onMobileData + " auth=" + (MIRROR_AUTH != null ? "set" : "null"));
+        Log.d(TAG, "network ok, mobile=" + onMobileData);
 
         // Refresh catalog before starting
         try {
@@ -352,7 +440,7 @@ public class DownloadDomain {
 
             File dest = new File(d[1]);
             dest.getParentFile().mkdirs();
-            downloadFile(d[0], dest);
+            downloadFile(d[0], dest, d[2]);
         }
     }
 
@@ -387,7 +475,7 @@ public class DownloadDomain {
      * Partial file is named {@code dest.getName() + ".download." + remoteSize}.
      * Atomically renames temp to dest on success.
      */
-    private void downloadFile(String urlStr, File dest) throws IOException, InterruptedException {
+    private void downloadFile(String urlStr, File dest, String mirrorPath) throws IOException, InterruptedException {
         // Find an existing partial file for this destination
         String prefix = dest.getName() + ".download.";
         File[] partials = dest.getParentFile().listFiles(
@@ -406,8 +494,14 @@ public class DownloadDomain {
                     // HEAD to confirm remote hasn't changed (throws on captive portal)
                     remoteSize = headFile(urlStr);
                     if (encodedSize == remoteSize) {
-                        temp         = p;
-                        partialBytes = p.length();
+                        if (!isMetaValid(mirrorPath)) {
+                            // Server file was updated — discard partial and stale meta
+                            p.delete();
+                            localMetaFile(mirrorPath).delete();
+                        } else {
+                            temp         = p;
+                            partialBytes = p.length();
+                        }
                     } else {
                         p.delete(); // stale partial — different remote size
                     }
