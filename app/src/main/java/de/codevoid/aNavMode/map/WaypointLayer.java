@@ -14,61 +14,55 @@ import org.mapsforge.core.util.MercatorProjection;
 import org.mapsforge.map.android.graphics.AndroidGraphicFactory;
 import org.mapsforge.map.android.view.MapView;
 import org.mapsforge.map.layer.Layer;
-import org.mapsforge.map.layer.overlay.Polyline;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
-import de.codevoid.aNavMode.routing.RoutePoint;
-import de.codevoid.aNavMode.routing.RoutingEngine;
+import de.codevoid.aNavMode.routing.RoutingDomain;
 
 /**
- * Single mapsforge Layer that manages the full waypoint workflow:
- * - tap empty map → add waypoint (green start / blue via / red end markers)
- * - tap existing waypoint → remove it and re-route affected segments
- * - routes segments automatically as waypoints are placed
- * - inserts route Polylines below itself in the layer stack so markers draw on top
+ * Pure rendering layer for waypoints and route polylines.
  *
- * Must be added as the *last* layer in LayerManager so it receives taps first.
+ * All routing state is owned by RoutingDomain. This layer subscribes to domain
+ * events and stores an immutable State snapshot via a volatile write, which the
+ * mapsforge render thread reads on each draw. The main thread is never involved
+ * in route updates.
+ *
+ * Must be the last layer added to LayerManager so it receives taps first.
  */
-public class WaypointLayer extends Layer {
+public class WaypointLayer extends Layer implements RoutingDomain.Listener {
 
     private static final int HIT_RADIUS_DP   = 24;
     private static final int MARKER_RADIUS_DP = 10;
 
-    // Brouter profile used for all segments — change via setProfile()
-    private String profile = "trekking";
-
-    public interface Listener {
+    public interface FailureListener {
+        /** Always called on the main thread. */
         void onRoutingFailed(int segmentIndex);
     }
 
-    private final MapView       mapView;
-    private final RoutingEngine router;
-    private final ExecutorService routingQueue = Executors.newSingleThreadExecutor();
-    private final Handler        mainHandler   = new Handler(Looper.getMainLooper());
-    private       Listener       listener;
+    private final MapView  mapView;
+    private final RoutingDomain domain;
+    private final Handler  mainHandler = new Handler(Looper.getMainLooper());
+    private final float    density;
+    private final int      tileSize;
+    private FailureListener failureListener;
 
-    private final List<LatLong> waypoints = new ArrayList<>();
-    // segments.get(i) = polyline from waypoints[i] to waypoints[i+1]; null while pending
-    private final List<Polyline> segments = new ArrayList<>();
+    // Written from domain thread, read from mapsforge render thread.
+    // The volatile guarantees the render thread always sees the latest snapshot.
+    private volatile RoutingDomain.State state = RoutingDomain.State.EMPTY;
 
     private final Paint startPaint, viaPaint, endPaint, outlinePaint, routePaint, dragLinePaint;
-    private final float density;
-    private final int   tileSize;
 
-    public WaypointLayer(MapView mapView, RoutingEngine router, float density) {
+    public WaypointLayer(MapView mapView, RoutingDomain domain, float density) {
         this.mapView  = mapView;
-        this.router   = router;
+        this.domain   = domain;
         this.density  = density;
         this.tileSize = mapView.getModel().displayModel.getTileSize();
 
-        startPaint   = fillPaint(Color.rgb(114, 176, 38));  // green
-        viaPaint     = fillPaint(Color.rgb(56,  170, 221)); // blue
-        endPaint     = fillPaint(Color.rgb(214,  62,  42)); // red
+        domain.addListener(this);
+
+        startPaint = fillPaint(Color.rgb(114, 176, 38));  // green
+        viaPaint   = fillPaint(Color.rgb(56,  170, 221)); // blue
+        endPaint   = fillPaint(Color.rgb(214,  62,  42)); // red
 
         outlinePaint = AndroidGraphicFactory.INSTANCE.createPaint();
         outlinePaint.setColor(Color.WHITE);
@@ -87,186 +81,116 @@ public class WaypointLayer extends Layer {
         dragLinePaint.setDashPathEffect(new float[]{dp(10), dp(6)});
     }
 
-    public void setListener(Listener l) { listener = l; }
-    public void setProfile(String profile) { this.profile = profile; }
+    public void setFailureListener(FailureListener l) { failureListener = l; }
 
     // -------------------------------------------------------------------------
-    // Waypoint operations
+    // RoutingDomain.Listener — called from domain thread, not main thread
     // -------------------------------------------------------------------------
 
-    public void addWaypoint(LatLong latLong) {
-        int index = waypoints.size();
-        waypoints.add(latLong);
+    @Override
+    public void onStateChanged(RoutingDomain.State newState) {
+        state = newState;  // volatile write — render thread picks it up on next draw
+        requestRedraw();   // thread-safe in mapsforge
+    }
 
-        if (index > 0) {
-            segments.add(null); // placeholder for the new segment
-            routeSegment(index - 1);
+    @Override
+    public void onRoutingFailed(int segmentIndex) {
+        if (failureListener != null) {
+            mainHandler.post(() -> failureListener.onRoutingFailed(segmentIndex));
         }
-
-        requestRedraw();
-    }
-
-    public void removeWaypoint(int index) {
-        if (index < 0 || index >= waypoints.size()) return;
-
-        waypoints.remove(index);
-
-        // Remove segment from removed point to its next, if any
-        if (index < segments.size()) {
-            clearPolylineAt(index);
-            segments.remove(index);
-        }
-
-        // Remove segment from previous to removed point; re-route if both neighbours exist
-        if (index > 0 && index - 1 < segments.size()) {
-            clearPolylineAt(index - 1);
-            segments.remove(index - 1);
-            if (index - 1 < waypoints.size()) { // prev and new-next both exist
-                segments.add(index - 1, null);
-                routeSegment(index - 1);
-            }
-        }
-
-        requestRedraw();
-    }
-
-    public void removeLastWaypoint() {
-        if (!waypoints.isEmpty()) removeWaypoint(waypoints.size() - 1);
-    }
-
-    public void clearAll() {
-        waypoints.clear();
-        for (Polyline p : segments) {
-            if (p != null) mapView.getLayerManager().getLayers().remove(p);
-        }
-        segments.clear();
-        requestRedraw();
-    }
-
-    /**
-     * Add a waypoint at the current map centre (i.e. under the crosshair).
-     * Call this from the "add waypoint" FAB.
-     */
-    public void addAtCenter() {
-        addWaypoint(mapView.getModel().mapViewPosition.getCenter());
-    }
-
-    public List<LatLong> getWaypoints() {
-        return Collections.unmodifiableList(waypoints);
     }
 
     // -------------------------------------------------------------------------
-    // Rendering
+    // Rendering — called from mapsforge render thread
     // -------------------------------------------------------------------------
 
     @Override
     public void draw(BoundingBox boundingBox, byte zoomLevel, Canvas canvas, Point topLeftPoint) {
-        if (waypoints.isEmpty()) return;
+        RoutingDomain.State s = state; // single volatile read for a consistent snapshot
+        if (s.waypoints.isEmpty()) return;
 
         long mapSize = MercatorProjection.getMapSize(zoomLevel, tileSize);
-        int  radius  = (int) dp(MARKER_RADIUS_DP);
 
-        // Drag line: dashed preview from last waypoint to current crosshair (map centre)
-        LatLong last   = waypoints.get(waypoints.size() - 1);
+        // Route segments — drawn directly, no Polyline layer objects needed
+        for (List<LatLong> seg : s.segments) {
+            if (seg == null || seg.size() < 2) continue;
+            for (int i = 1; i < seg.size(); i++) {
+                LatLong p1 = seg.get(i - 1);
+                LatLong p2 = seg.get(i);
+                int x1 = project(MercatorProjection.longitudeToPixelX(p1.longitude, mapSize), topLeftPoint.x);
+                int y1 = project(MercatorProjection.latitudeToPixelY(p1.latitude,   mapSize), topLeftPoint.y);
+                int x2 = project(MercatorProjection.longitudeToPixelX(p2.longitude, mapSize), topLeftPoint.x);
+                int y2 = project(MercatorProjection.latitudeToPixelY(p2.latitude,   mapSize), topLeftPoint.y);
+                canvas.drawLine(x1, y1, x2, y2, routePaint);
+            }
+        }
+
+        // Drag line: dashed preview from last waypoint to the current map centre
+        LatLong last   = s.waypoints.get(s.waypoints.size() - 1);
         LatLong centre = mapView.getModel().mapViewPosition.getCenter();
-        int dragX1 = (int)(MercatorProjection.longitudeToPixelX(last.longitude,   mapSize) - topLeftPoint.x);
-        int dragY1 = (int)(MercatorProjection.latitudeToPixelY(last.latitude,     mapSize) - topLeftPoint.y);
-        int dragX2 = (int)(MercatorProjection.longitudeToPixelX(centre.longitude, mapSize) - topLeftPoint.x);
-        int dragY2 = (int)(MercatorProjection.latitudeToPixelY(centre.latitude,   mapSize) - topLeftPoint.y);
-        canvas.drawLine(dragX1, dragY1, dragX2, dragY2, dragLinePaint);
+        canvas.drawLine(
+                project(MercatorProjection.longitudeToPixelX(last.longitude,   mapSize), topLeftPoint.x),
+                project(MercatorProjection.latitudeToPixelY(last.latitude,     mapSize), topLeftPoint.y),
+                project(MercatorProjection.longitudeToPixelX(centre.longitude, mapSize), topLeftPoint.x),
+                project(MercatorProjection.latitudeToPixelY(centre.latitude,   mapSize), topLeftPoint.y),
+                dragLinePaint);
 
-        for (int i = 0; i < waypoints.size(); i++) {
-            LatLong wp = waypoints.get(i);
-            int cx = (int) (MercatorProjection.longitudeToPixelX(wp.longitude, mapSize) - topLeftPoint.x);
-            int cy = (int) (MercatorProjection.latitudeToPixelY(wp.latitude,   mapSize) - topLeftPoint.y);
-
-            canvas.drawCircle(cx, cy, radius, markerPaint(i));
+        // Waypoint markers
+        int radius = (int) dp(MARKER_RADIUS_DP);
+        for (int i = 0; i < s.waypoints.size(); i++) {
+            LatLong wp = s.waypoints.get(i);
+            int cx = project(MercatorProjection.longitudeToPixelX(wp.longitude, mapSize), topLeftPoint.x);
+            int cy = project(MercatorProjection.latitudeToPixelY(wp.latitude,   mapSize), topLeftPoint.y);
+            canvas.drawCircle(cx, cy, radius, markerPaint(i, s.waypoints.size()));
             canvas.drawCircle(cx, cy, radius, outlinePaint);
         }
     }
 
     // -------------------------------------------------------------------------
-    // Tap handling — this layer must be the top (last) layer in the stack
+    // Tap handling
     // -------------------------------------------------------------------------
 
-    /**
-     * Tap an existing waypoint marker to remove it.
-     * Map panning + fabAddWaypoint is how new waypoints are added.
-     */
     @Override
     public boolean onTap(LatLong tapLatLong, Point layerXY, Point tapXY) {
+        RoutingDomain.State s = state;
         byte zoom    = mapView.getModel().mapViewPosition.getZoomLevel();
         long mapSize = MercatorProjection.getMapSize(zoom, tileSize);
         double hitSq = Math.pow(dp(HIT_RADIUS_DP), 2);
 
-        for (int i = 0; i < waypoints.size(); i++) {
-            LatLong wp = waypoints.get(i);
-            double dx = MercatorProjection.longitudeToPixelX(wp.longitude,        mapSize)
+        for (int i = 0; i < s.waypoints.size(); i++) {
+            LatLong wp = s.waypoints.get(i);
+            double dx = MercatorProjection.longitudeToPixelX(wp.longitude,         mapSize)
                       - MercatorProjection.longitudeToPixelX(tapLatLong.longitude, mapSize);
-            double dy = MercatorProjection.latitudeToPixelY(wp.latitude,          mapSize)
+            double dy = MercatorProjection.latitudeToPixelY(wp.latitude,           mapSize)
                       - MercatorProjection.latitudeToPixelY(tapLatLong.latitude,   mapSize);
-            if (dx*dx + dy*dy <= hitSq) {
-                removeWaypoint(i);
+            if (dx * dx + dy * dy <= hitSq) {
+                domain.removeWaypoint(i);
                 return true;
             }
         }
 
-        return false; // tap didn't hit a waypoint; let it fall through
+        return false;
     }
 
     // -------------------------------------------------------------------------
-    // Internal helpers
+    // Lifecycle
     // -------------------------------------------------------------------------
 
-    private void routeSegment(final int idx) {
-        final LatLong from = waypoints.get(idx);
-        final LatLong to   = waypoints.get(idx + 1);
-
-        routingQueue.execute(() -> {
-            List<RoutePoint> points = router.calculateRoute(
-                    from.latitude, from.longitude,
-                    to.latitude,   to.longitude,
-                    profile);
-
-            mainHandler.post(() -> {
-                if (idx >= segments.size()) return; // cleared while routing
-
-                if (points != null && !points.isEmpty()) {
-                    clearPolylineAt(idx);
-
-                    Polyline polyline = buildPolyline(points);
-                    segments.set(idx, polyline);
-
-                    // Insert below this layer so markers always render on top of routes
-                    int myIndex = mapView.getLayerManager().getLayers().indexOf(WaypointLayer.this);
-                    mapView.getLayerManager().getLayers().add(Math.max(myIndex, 0), polyline);
-                    requestRedraw();
-                } else if (listener != null) {
-                    listener.onRoutingFailed(idx);
-                }
-            });
-        });
+    public void destroy() {
+        domain.removeListener(this);
     }
 
-    private void clearPolylineAt(int idx) {
-        Polyline p = segments.get(idx);
-        if (p != null) {
-            mapView.getLayerManager().getLayers().remove(p);
-            segments.set(idx, null);
-        }
+    // -------------------------------------------------------------------------
+    // Helpers
+    // -------------------------------------------------------------------------
+
+    private static int project(double worldCoord, double topLeft) {
+        return (int) (worldCoord - topLeft);
     }
 
-    private Polyline buildPolyline(List<RoutePoint> points) {
-        Polyline polyline = new Polyline(routePaint, AndroidGraphicFactory.INSTANCE);
-        for (RoutePoint p : points) {
-            polyline.getLatLongs().add(new LatLong(p.lat, p.lon));
-        }
-        return polyline;
-    }
-
-    private Paint markerPaint(int index) {
-        if (index == 0)                        return startPaint;
-        if (index == waypoints.size() - 1)     return endPaint;
+    private Paint markerPaint(int index, int total) {
+        if (index == 0)         return startPaint;
+        if (index == total - 1) return endPaint;
         return viaPaint;
     }
 
@@ -279,10 +203,5 @@ public class WaypointLayer extends Layer {
 
     private float dp(float dp) {
         return dp * density;
-    }
-
-    public void destroy() {
-        routingQueue.shutdownNow();
-        clearAll();
     }
 }

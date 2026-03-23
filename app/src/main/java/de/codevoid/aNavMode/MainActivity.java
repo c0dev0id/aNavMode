@@ -29,12 +29,14 @@ import de.codevoid.aNavMode.map.WaypointLayer;
 import de.codevoid.aNavMode.remote.RemoteControlManager;
 import de.codevoid.aNavMode.remote.RemoteEvent;
 import de.codevoid.aNavMode.routing.BRouterEngine;
+import de.codevoid.aNavMode.routing.RoutingDomain;
 
 public class MainActivity extends AppCompatActivity
-        implements DebugSheet.Callbacks, WaypointLayer.Listener {
+        implements DebugSheet.Callbacks, WaypointLayer.FailureListener {
 
     private MapView               mapView;
     private MapManager            mapManager;
+    private RoutingDomain         routingDomain;
     private WaypointLayer         waypointLayer;
     private RemoteControlManager  remoteControl;
     private PanController         panController;
@@ -73,7 +75,7 @@ public class MainActivity extends AppCompatActivity
         remoteControl.setListener(this::handleRemoteEvent);
 
         FloatingActionButton fabAdd = findViewById(R.id.fabAddWaypoint);
-        fabAdd.setOnClickListener(v -> { if (waypointLayer != null) waypointLayer.addAtCenter(); });
+        fabAdd.setOnClickListener(v -> { if (routingDomain != null) routingDomain.addAtCenter(); });
 
         FloatingActionButton fab = findViewById(R.id.fabDebug);
         fab.setOnClickListener(v -> new DebugSheet(this, this).show());
@@ -88,10 +90,13 @@ public class MainActivity extends AppCompatActivity
 
         mapManager.setInitialPosition();
 
+        // RoutingDomain owns all routing state and the BRouter executor
+        routingDomain = new RoutingDomain(new BRouterEngine(this), mapView);
+
         // WaypointLayer must be added last — it needs to be top of stack to receive taps first
-        waypointLayer = new WaypointLayer(mapView, new BRouterEngine(this),
+        waypointLayer = new WaypointLayer(mapView, routingDomain,
                 getResources().getDisplayMetrics().density);
-        waypointLayer.setListener(this);
+        waypointLayer.setFailureListener(this);
         mapView.getLayerManager().getLayers().add(waypointLayer);
 
         locationHelper = new LocationHelper(this);
@@ -155,8 +160,8 @@ public class MainActivity extends AppCompatActivity
         if (event instanceof RemoteEvent.ShortPress) {
             RemoteEvent.ShortPress e = (RemoteEvent.ShortPress) event;
             switch (e.key) {
-                case CONFIRM: waypointLayer.addAtCenter();        break;
-                case BACK:    waypointLayer.removeLastWaypoint(); break;
+                case CONFIRM: if (routingDomain != null) routingDomain.addAtCenter();        break;
+                case BACK:    if (routingDomain != null) routingDomain.removeLastWaypoint(); break;
                 default: break;
             }
         } else if (event instanceof RemoteEvent.KeyDown) {
@@ -183,7 +188,7 @@ public class MainActivity extends AppCompatActivity
         super.onPause();
     }
 
-    // --- WaypointLayer.Listener ---
+    // --- WaypointLayer.FailureListener ---
 
     @Override
     public void onRoutingFailed(int segmentIndex) {
@@ -206,13 +211,14 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onClearWaypoints() {
-        waypointLayer.clearAll();
+        routingDomain.clearAll();
     }
 
     @Override
     protected void onDestroy() {
-        if (locationHelper != null) locationHelper.cancel();
-        if (waypointLayer != null) waypointLayer.destroy();
+        if (locationHelper  != null) locationHelper.cancel();
+        if (waypointLayer   != null) waypointLayer.destroy();
+        if (routingDomain   != null) routingDomain.destroy();
         mapManager.destroy();
         mapView.destroyAll();
         AndroidGraphicFactory.clearResourceMemoryCache();
