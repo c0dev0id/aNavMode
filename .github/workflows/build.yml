@@ -119,7 +119,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release delete nightly --yes --cleanup-tag 2>/dev/null || true
+          gh release delete nightly --yes 2>/dev/null || true
+          git push origin :refs/tags/nightly 2>/dev/null || true
           gh release create nightly \
             --prerelease \
             --title "nightly ($(date -u '+%Y-%m-%d %H:%M UTC'))" \
