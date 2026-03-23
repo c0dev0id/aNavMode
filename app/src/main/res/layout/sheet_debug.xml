@@ -36,4 +36,20 @@
         android:text="Clear Waypoints"
         android:layout_marginBottom="8dp" />
 
+    <Button
+        android:id="@+id/btnCheckUpdate"
+        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Check for Update"
+        android:layout_marginBottom="4dp" />
+
+    <TextView
+        android:id="@+id/tvUpdateStatus"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="13sp"
+        android:visibility="gone"
+        android:layout_marginBottom="8dp" />
+
 </LinearLayout>

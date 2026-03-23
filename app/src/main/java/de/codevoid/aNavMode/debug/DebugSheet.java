@@ -3,6 +3,8 @@ package de.codevoid.aNavMode.debug;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.Button;
+import android.widget.TextView;
 
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 
@@ -35,7 +37,67 @@ public class DebugSheet {
             callbacks.onClearWaypoints();
         });
 
+        Button btnUpdate = view.findViewById(R.id.btnCheckUpdate);
+        TextView tvStatus = view.findViewById(R.id.tvUpdateStatus);
+
+        btnUpdate.setOnClickListener(v -> {
+            btnUpdate.setEnabled(false);
+            btnUpdate.setText("Checking…");
+            tvStatus.setVisibility(View.GONE);
+
+            UpdateChecker.check((release, error) -> {
+                btnUpdate.setEnabled(true);
+                btnUpdate.setText("Check for Update");
+
+                if (error != null) {
+                    tvStatus.setVisibility(View.VISIBLE);
+                    tvStatus.setText("Error: " + error);
+                    return;
+                }
+
+                if (!release.isNewerThanThisBuild()) {
+                    tvStatus.setVisibility(View.VISIBLE);
+                    tvStatus.setText("Already up to date (" + release.name + ")");
+                    return;
+                }
+
+                tvStatus.setVisibility(View.VISIBLE);
+                tvStatus.setText("Update available: " + release.name + "\nTap to download…");
+                btnUpdate.setText("Download & Install");
+                btnUpdate.setOnClickListener(dv -> startDownload(context, btnUpdate, tvStatus, release));
+            });
+        });
+
         dialog.setContentView(view);
+    }
+
+    private void startDownload(Context context, Button btn, TextView tvStatus,
+                               UpdateChecker.Release release) {
+        btn.setEnabled(false);
+        btn.setText("Downloading…");
+        tvStatus.setVisibility(View.VISIBLE);
+        tvStatus.setText("Downloading 0%");
+
+        UpdateChecker.download(context, release, new UpdateChecker.DownloadCallback() {
+            @Override
+            public void onProgress(int percent) {
+                tvStatus.setText("Downloading " + percent + "%");
+            }
+
+            @Override
+            public void onComplete(java.io.File apk) {
+                tvStatus.setText("Download complete. Installing…");
+                UpdateChecker.install(context, apk);
+                dialog.dismiss();
+            }
+
+            @Override
+            public void onError(String error) {
+                btn.setEnabled(true);
+                btn.setText("Retry Download");
+                tvStatus.setText("Download failed: " + error);
+            }
+        });
     }
 
     public void show() {
