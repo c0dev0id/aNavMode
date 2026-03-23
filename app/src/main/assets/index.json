@@ -1,0 +1,110 @@
+{
+  "generated": "2026-03-23T10:06:11Z",
+  "regions": [
+    {
+      "id": "germany/Germany-South",
+      "polygon": [
+        [
+          5.58,
+          50.5
+        ],
+        [
+          5.58,
+          49.5
+        ],
+        [
+          6.5,
+          49
+        ],
+        [
+          6.5,
+          47.35
+        ],
+        [
+          9.85871,
+          47.35
+        ],
+        [
+          10.11843,
+          47.2
+        ],
+        [
+          10.30301,
+          47.2
+        ],
+        [
+          10.7,
+          47.35
+        ],
+        [
+          13.31,
+          47.35
+        ],
+        [
+          13.31,
+          48
+        ],
+        [
+          14.2049789,
+          48.6989486
+        ],
+        [
+          12.575,
+          50.5
+        ],
+        [
+          5.58,
+          50.5
+        ]
+      ],
+      "files": [
+        {
+          "type": "map",
+          "path": "maps/germany/Germany-South_oam.osm.map",
+          "size": 0,
+          "modified": "2026-03-01T23:50:00Z"
+        },
+        {
+          "type": "poi",
+          "path": "pois/germany/Germany-South_oam.osm.poi",
+          "size": 0,
+          "modified": "2026-03-02T00:09:33Z"
+        },
+        {
+          "type": "base",
+          "path": "base/germany/Germany-South_sea_land.map",
+          "size": 0,
+          "modified": "2026-03-01T07:43:06Z"
+        }
+      ],
+      "tiles": [
+        "E5_N45",
+        "E5_N50",
+        "E10_N45",
+        "E10_N50"
+      ]
+    }
+  ],
+  "tiles": {
+    "E10_N45": {
+      "path": "segments4/E10_N45.rd5",
+      "size": 197563432,
+      "modified": "2026-03-23T01:03:00Z"
+    },
+    "E10_N50": {
+      "path": "segments4/E10_N50.rd5",
+      "size": 124743594,
+      "modified": "2026-03-23T01:03:00Z"
+    },
+    "E5_N45": {
+      "path": "segments4/E5_N45.rd5",
+      "size": 250398956,
+      "modified": "2026-03-23T01:03:00Z"
+    },
+    "E5_N50": {
+      "path": "segments4/E5_N50.rd5",
+      "size": 181628671,
+      "modified": "2026-03-23T01:03:00Z"
+    }
+  }
+}
