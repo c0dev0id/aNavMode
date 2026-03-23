@@ -1,6 +1,465 @@
 {
-  "generated": "2026-03-23T10:06:11Z",
+  "generated": "2026-03-23T11:42:53Z",
+  "world": {
+    "path": "world/world.map",
+    "size": 3276950,
+    "modified": "2016-02-20T12:08:12Z"
+  },
   "regions": [
+    {
+      "id": "germany/Baden-Wuerttemberg",
+      "polygon": [
+        [
+          5.835,
+          47.137
+        ],
+        [
+          5.835,
+          47.557
+        ],
+        [
+          6.2713265,
+          48.516249
+        ],
+        [
+          6.5922904,
+          49.2060046
+        ],
+        [
+          7.8387666,
+          49.7850464
+        ],
+        [
+          9.61117,
+          49.91
+        ],
+        [
+          10.03419,
+          49.91
+        ],
+        [
+          10.4102325,
+          49.5988344
+        ],
+        [
+          10.6720805,
+          48.9195947
+        ],
+        [
+          10.6720805,
+          48.6497102
+        ],
+        [
+          10.302794,
+          47.6054975
+        ],
+        [
+          9.57092,
+          47.137
+        ],
+        [
+          5.835,
+          47.137
+        ]
+      ],
+      "files": [
+        {
+          "type": "map",
+          "path": "maps/germany/Baden-Wuerttemberg_oam.osm.map",
+          "size": 0,
+          "modified": "2026-03-01T16:16:00Z"
+        },
+        {
+          "type": "poi",
+          "path": "pois/germany/Baden-Wuerttemberg_oam.osm.poi",
+          "size": 0,
+          "modified": "2026-03-01T16:30:22Z"
+        },
+        {
+          "type": "base",
+          "path": "base/germany/Baden-Wuerttemberg_sea_land.map",
+          "size": 0,
+          "modified": "2026-03-01T07:43:21Z"
+        }
+      ],
+      "tiles": [
+        "E5_N45",
+        "E10_N45"
+      ]
+    },
+    {
+      "id": "germany/Bayern",
+      "polygon": [
+        [
+          10.1,
+          47.157
+        ],
+        [
+          8.838,
+          47.63863
+        ],
+        [
+          8.838,
+          47.86166
+        ],
+        [
+          9.3793416,
+          48.0582051
+        ],
+        [
+          10.0058842,
+          48.8165147
+        ],
+        [
+          9.59527,
+          49.4267
+        ],
+        [
+          9,
+          49.4267
+        ],
+        [
+          8.765,
+          49.58154
+        ],
+        [
+          8.765,
+          50.16516
+        ],
+        [
+          10,
+          50.675
+        ],
+        [
+          12.04434,
+          50.675
+        ],
+        [
+          14.078,
+          48.89531
+        ],
+        [
+          14.078,
+          48.59635
+        ],
+        [
+          13.25,
+          48.07721
+        ],
+        [
+          13.25,
+          47.378
+        ],
+        [
+          12.135,
+          47.378
+        ],
+        [
+          11.51048,
+          47.157
+        ],
+        [
+          10.1,
+          47.157
+        ]
+      ],
+      "files": [
+        {
+          "type": "map",
+          "path": "maps/germany/Bayern_oam.osm.map",
+          "size": 0,
+          "modified": "2026-03-01T15:59:00Z"
+        },
+        {
+          "type": "poi",
+          "path": "pois/germany/Bayern_oam.osm.poi",
+          "size": 0,
+          "modified": "2026-03-01T16:11:01Z"
+        },
+        {
+          "type": "base",
+          "path": "base/germany/Bayern_sea_land.map",
+          "size": 0,
+          "modified": "2026-03-01T07:43:35Z"
+        }
+      ],
+      "tiles": [
+        "E5_N45",
+        "E5_N50",
+        "E10_N45",
+        "E10_N50"
+      ]
+    },
+    {
+      "id": "germany/Berlin",
+      "polygon": [
+        [
+          13.86,
+          52.25
+        ],
+        [
+          12.75,
+          52.25
+        ],
+        [
+          12.75,
+          52.75
+        ],
+        [
+          13.86,
+          52.75
+        ],
+        [
+          13.86,
+          52.25
+        ]
+      ],
+      "files": [
+        {
+          "type": "map",
+          "path": "maps/germany/Berlin_oam.osm.map",
+          "size": 0,
+          "modified": "2026-03-01T08:13:00Z"
+        },
+        {
+          "type": "poi",
+          "path": "pois/germany/Berlin_oam.osm.poi",
+          "size": 0,
+          "modified": "2026-03-01T08:16:09Z"
+        },
+        {
+          "type": "base",
+          "path": "base/germany/Berlin_sea_land.map",
+          "size": 0,
+          "modified": "2026-03-01T07:43:32Z"
+        }
+      ],
+      "tiles": [
+        "E10_N50"
+      ]
+    },
+    {
+      "id": "germany/Brandenburg",
+      "polygon": [
+        [
+          12.8,
+          51.235
+        ],
+        [
+          12.8,
+          51.70773
+        ],
+        [
+          11.9,
+          52
+        ],
+        [
+          11.9,
+          52.68
+        ],
+        [
+          11,
+          53
+        ],
+        [
+          11,
+          53.26
+        ],
+        [
+          12,
+          53.627
+        ],
+        [
+          15,
+          53.627
+        ],
+        [
+          15,
+          51.235
+        ],
+        [
+          12.8,
+          51.235
+        ]
+      ],
+      "files": [
+        {
+          "type": "map",
+          "path": "maps/germany/Brandenburg_oam.osm.map",
+          "size": 0,
+          "modified": "2026-03-01T10:24:00Z"
+        },
+        {
+          "type": "poi",
+          "path": "pois/germany/Brandenburg_oam.osm.poi",
+          "size": 0,
+          "modified": "2026-03-01T10:29:42Z"
+        },
+        {
+          "type": "base",
+          "path": "base/germany/Brandenburg_sea_land.map",
+          "size": 0,
+          "modified": "2026-03-01T07:44:25Z"
+        }
+      ],
+      "tiles": [
+        "E10_N50"
+      ]
+    },
+    {
+      "id": "germany/Germany-Mid",
+      "polygon": [
+        [
+          13.51,
+          49
+        ],
+        [
+          13.51,
+          50.11
+        ],
+        [
+          15.2,
+          50.77
+        ],
+        [
+          15.2,
+          51.77
+        ],
+        [
+          5.58,
+          51.77
+        ],
+        [
+          5.58,
+          49
+        ],
+        [
+          13.51,
+          49
+        ]
+      ],
+      "files": [
+        {
+          "type": "map",
+          "path": "maps/germany/Germany-Mid_oam.osm.map",
+          "size": 0,
+          "modified": "2026-03-02T01:05:00Z"
+        },
+        {
+          "type": "poi",
+          "path": "pois/germany/Germany-Mid_oam.osm.poi",
+          "size": 0,
+          "modified": "2026-03-02T01:25:51Z"
+        },
+        {
+          "type": "base",
+          "path": "base/germany/Germany-Mid_sea_land.map",
+          "size": 0,
+          "modified": "2026-03-01T07:43:18Z"
+        }
+      ],
+      "tiles": [
+        "E5_N45",
+        "E5_N50",
+        "E10_N45",
+        "E10_N50",
+        "E15_N45",
+        "E15_N50"
+      ]
+    },
+    {
+      "id": "germany/Germany-North",
+      "polygon": [
+        [
+          12.75,
+          50.11
+        ],
+        [
+          5.7,
+          50.11
+        ],
+        [
+          5.7,
+          51.87394
+        ],
+        [
+          6.1657333,
+          52.0020697
+        ],
+        [
+          6.4165521,
+          51.9358384
+        ],
+        [
+          6.8465424,
+          52.3185926
+        ],
+        [
+          6.601,
+          52.47035
+        ],
+        [
+          6.601,
+          52.7
+        ],
+        [
+          6.9532728,
+          52.7477493
+        ],
+        [
+          7.0782423,
+          53.1553921
+        ],
+        [
+          6.01,
+          53.702
+        ],
+        [
+          6.01,
+          55.1511
+        ],
+        [
+          15.201,
+          55.1511
+        ],
+        [
+          15.201,
+          50.77714
+        ],
+        [
+          12.75,
+          50.11
+        ]
+      ],
+      "files": [
+        {
+          "type": "map",
+          "path": "maps/germany/Germany-North_oam.osm.map",
+          "size": 0,
+          "modified": "2026-03-02T03:32:00Z"
+        },
+        {
+          "type": "poi",
+          "path": "pois/germany/Germany-North_oam.osm.poi",
+          "size": 0,
+          "modified": "2026-03-02T03:57:13Z"
+        },
+        {
+          "type": "base",
+          "path": "base/germany/Germany-North_sea_land.map",
+          "size": 0,
+          "modified": "2026-03-01T07:46:34Z"
+        }
+      ],
+      "tiles": [
+        "E5_N50",
+        "E5_N55",
+        "E10_N50",
+        "E10_N55",
+        "E15_N50",
+        "E15_N55"
+      ]
+    },
     {
       "id": "germany/Germany-South",
       "polygon": [
@@ -83,6 +542,825 @@
         "E10_N45",
         "E10_N50"
       ]
+    },
+    {
+      "id": "germany/Hamburg",
+      "polygon": [
+        [
+          9.45,
+          53.87
+        ],
+        [
+          10.51,
+          53.87
+        ],
+        [
+          10.51,
+          53.29
+        ],
+        [
+          9.45,
+          53.29
+        ],
+        [
+          9.45,
+          53.87
+        ]
+      ],
+      "files": [
+        {
+          "type": "map",
+          "path": "maps/germany/Hamburg_oam.osm.map",
+          "size": 0,
+          "modified": "2026-03-01T08:42:00Z"
+        },
+        {
+          "type": "poi",
+          "path": "pois/germany/Hamburg_oam.osm.poi",
+          "size": 0,
+          "modified": "2026-03-01T08:45:00Z"
+        },
+        {
+          "type": "base",
+          "path": "base/germany/Hamburg_sea_land.map",
+          "size": 0,
+          "modified": "2026-03-01T08:20:01Z"
+        }
+      ],
+      "tiles": [
+        "E5_N50",
+        "E10_N50"
+      ]
+    },
+    {
+      "id": "germany/Hessen",
+      "polygon": [
+        [
+          8.2,
+          49.3
+        ],
+        [
+          8.2,
+          49.52
+        ],
+        [
+          7.657,
+          49.987
+        ],
+        [
+          7.657,
+          50.67
+        ],
+        [
+          8.4948564,
+          51.500929
+        ],
+        [
+          9.05,
+          51.753
+        ],
+        [
+          9.76,
+          51.753
+        ],
+        [
+          10.395,
+          51.199
+        ],
+        [
+          10.395,
+          50.528
+        ],
+        [
+          9.644,
+          49.942
+        ],
+        [
+          9.33,
+          49.942
+        ],
+        [
+          9.33,
+          49.3
+        ],
+        [
+          8.2,
+          49.3
+        ]
+      ],
+      "files": [
+        {
+          "type": "map",
+          "path": "maps/germany/Hessen_oam.osm.map",
+          "size": 0,
+          "modified": "2026-03-01T12:13:00Z"
+        },
+        {
+          "type": "poi",
+          "path": "pois/germany/Hessen_oam.osm.poi",
+          "size": 0,
+          "modified": "2026-03-01T12:19:42Z"
+        },
+        {
+          "type": "base",
+          "path": "base/germany/Hessen_sea_land.map",
+          "size": 0,
+          "modified": "2026-03-01T08:48:09Z"
+        }
+      ],
+      "tiles": [
+        "E5_N45",
+        "E5_N50",
+        "E10_N45",
+        "E10_N50"
+      ]
+    },
+    {
+      "id": "germany/Mecklenburg-Vorpommern",
+      "polygon": [
+        [
+          10.336,
+          53
+        ],
+        [
+          10.336,
+          55
+        ],
+        [
+          15.0016594,
+          54.9987275
+        ],
+        [
+          15.0016809,
+          53.0093223
+        ],
+        [
+          10.336,
+          53
+        ]
+      ],
+      "files": [
+        {
+          "type": "map",
+          "path": "maps/germany/Mecklenburg-Vorpommern_oam.osm.map",
+          "size": 0,
+          "modified": "2026-03-01T13:17:00Z"
+        },
+        {
+          "type": "poi",
+          "path": "pois/germany/Mecklenburg-Vorpommern_oam.osm.poi",
+          "size": 0,
+          "modified": "2026-03-01T13:21:01Z"
+        },
+        {
+          "type": "base",
+          "path": "base/germany/Mecklenburg-Vorpommern_sea_land.map",
+          "size": 0,
+          "modified": "2026-03-01T12:28:44Z"
+        }
+      ],
+      "tiles": [
+        "E10_N50",
+        "E15_N50"
+      ]
+    },
+    {
+      "id": "germany/Niedersachsen",
+      "polygon": [
+        [
+          6.8744,
+          52.1505
+        ],
+        [
+          6.55,
+          52.43323
+        ],
+        [
+          6.55,
+          52.71897
+        ],
+        [
+          6.82,
+          53.09492
+        ],
+        [
+          6.82,
+          53.28491
+        ],
+        [
+          6.25,
+          53.63726
+        ],
+        [
+          6.25,
+          54.18642
+        ],
+        [
+          11.1955404,
+          54.1864228
+        ],
+        [
+          11.84412,
+          53.0808532
+        ],
+        [
+          10.8550286,
+          51.4840421
+        ],
+        [
+          9.99687,
+          51.166
+        ],
+        [
+          9.40895,
+          51.166
+        ],
+        [
+          8.74718,
+          51.825
+        ],
+        [
+          7.94455,
+          51.825
+        ],
+        [
+          6.8744,
+          52.1505
+        ]
+      ],
+      "files": [
+        {
+          "type": "map",
+          "path": "maps/germany/Niedersachsen_oam.osm.map",
+          "size": 0,
+          "modified": "2026-03-01T16:17:00Z"
+        },
+        {
+          "type": "poi",
+          "path": "pois/germany/Niedersachsen_oam.osm.poi",
+          "size": 0,
+          "modified": "2026-03-01T16:27:27Z"
+        },
+        {
+          "type": "base",
+          "path": "base/germany/Niedersachsen_sea_land.map",
+          "size": 0,
+          "modified": "2026-03-01T10:37:22Z"
+        }
+      ],
+      "tiles": [
+        "E5_N50",
+        "E10_N50"
+      ]
+    },
+    {
+      "id": "germany/Nordrhein-Westfalen",
+      "polygon": [
+        [
+          6.647,
+          50.259
+        ],
+        [
+          5.9,
+          50.259
+        ],
+        [
+          5.9,
+          50.699
+        ],
+        [
+          5.455,
+          50.699
+        ],
+        [
+          5.455,
+          51
+        ],
+        [
+          5.79,
+          51.36887
+        ],
+        [
+          5.79,
+          52
+        ],
+        [
+          6.39254,
+          52
+        ],
+        [
+          7.274,
+          52.575
+        ],
+        [
+          9.19,
+          52.575
+        ],
+        [
+          9.57,
+          51.8662
+        ],
+        [
+          9.57,
+          51.42743
+        ],
+        [
+          8.185,
+          50.59
+        ],
+        [
+          7.678,
+          50.59
+        ],
+        [
+          6.647,
+          50.259
+        ]
+      ],
+      "files": [
+        {
+          "type": "map",
+          "path": "maps/germany/Nordrhein-Westfalen_oam.osm.map",
+          "size": 0,
+          "modified": "2026-03-01T20:42:00Z"
+        },
+        {
+          "type": "poi",
+          "path": "pois/germany/Nordrhein-Westfalen_oam.osm.poi",
+          "size": 0,
+          "modified": "2026-03-01T20:53:24Z"
+        },
+        {
+          "type": "base",
+          "path": "base/germany/Nordrhein-Westfalen_sea_land.map",
+          "size": 0,
+          "modified": "2026-03-01T13:25:01Z"
+        }
+      ],
+      "tiles": [
+        "E5_N50"
+      ]
+    },
+    {
+      "id": "germany/Rheinland-Pfalz",
+      "polygon": [
+        [
+          6.84,
+          48.795
+        ],
+        [
+          6,
+          49.718
+        ],
+        [
+          6,
+          50.5
+        ],
+        [
+          7.62681,
+          51.05
+        ],
+        [
+          8.34,
+          51.05
+        ],
+        [
+          8.34,
+          50.26518
+        ],
+        [
+          8.77,
+          49.75884
+        ],
+        [
+          8.77,
+          48.795
+        ],
+        [
+          6.84,
+          48.795
+        ]
+      ],
+      "files": [
+        {
+          "type": "map",
+          "path": "maps/germany/Rheinland-Pfalz_oam.osm.map",
+          "size": 0,
+          "modified": "2026-03-01T20:38:00Z"
+        },
+        {
+          "type": "poi",
+          "path": "pois/germany/Rheinland-Pfalz_oam.osm.poi",
+          "size": 0,
+          "modified": "2026-03-01T20:45:02Z"
+        },
+        {
+          "type": "base",
+          "path": "base/germany/Rheinland-Pfalz_sea_land.map",
+          "size": 0,
+          "modified": "2026-03-01T16:44:17Z"
+        }
+      ],
+      "tiles": [
+        "E5_N45",
+        "E5_N50"
+      ]
+    },
+    {
+      "id": "germany/Ruegen",
+      "polygon": [
+        [
+          13.8,
+          54.2
+        ],
+        [
+          12.3,
+          54.2
+        ],
+        [
+          12.3,
+          54.8
+        ],
+        [
+          13.8,
+          54.8
+        ],
+        [
+          13.8,
+          54.2
+        ]
+      ],
+      "files": [
+        {
+          "type": "map",
+          "path": "maps/germany/Ruegen_oam.osm.map",
+          "size": 0,
+          "modified": "2026-03-01T22:49:00Z"
+        },
+        {
+          "type": "poi",
+          "path": "pois/germany/Ruegen_oam.osm.poi",
+          "size": 0,
+          "modified": "2026-03-01T22:50:15Z"
+        },
+        {
+          "type": "base",
+          "path": "base/germany/Ruegen_sea_land.map",
+          "size": 0,
+          "modified": "2026-03-01T22:39:36Z"
+        }
+      ],
+      "tiles": [
+        "E10_N50"
+      ]
+    },
+    {
+      "id": "germany/Saarland",
+      "polygon": [
+        [
+          5.29,
+          49.809
+        ],
+        [
+          5.967164,
+          50.247301
+        ],
+        [
+          8.25,
+          49.74864
+        ],
+        [
+          8.25,
+          49.2832
+        ],
+        [
+          7.72753,
+          48.6295192
+        ],
+        [
+          7.24102,
+          48.448
+        ],
+        [
+          5.29,
+          48.448
+        ],
+        [
+          5.29,
+          49.809
+        ]
+      ],
+      "files": [
+        {
+          "type": "map",
+          "path": "maps/germany/Saarland_oam.osm.map",
+          "size": 0,
+          "modified": "2026-03-01T18:56:00Z"
+        },
+        {
+          "type": "poi",
+          "path": "pois/germany/Saarland_oam.osm.poi",
+          "size": 0,
+          "modified": "2026-03-01T18:59:53Z"
+        },
+        {
+          "type": "base",
+          "path": "base/germany/Saarland_sea_land.map",
+          "size": 0,
+          "modified": "2026-03-01T16:24:01Z"
+        }
+      ],
+      "tiles": [
+        "E5_N45",
+        "E5_N50"
+      ]
+    },
+    {
+      "id": "germany/Sachsen-Anhalt",
+      "polygon": [
+        [
+          10.367,
+          51.689
+        ],
+        [
+          10.367,
+          53.14
+        ],
+        [
+          12.6,
+          53.14
+        ],
+        [
+          12.6,
+          52.23885
+        ],
+        [
+          13.39,
+          52
+        ],
+        [
+          13.39,
+          51.45
+        ],
+        [
+          12.6,
+          51.45
+        ],
+        [
+          12.6,
+          50.795
+        ],
+        [
+          11.49363,
+          50.795
+        ],
+        [
+          10.367,
+          51.689
+        ]
+      ],
+      "files": [
+        {
+          "type": "map",
+          "path": "maps/germany/Sachsen-Anhalt_oam.osm.map",
+          "size": 0,
+          "modified": "2026-03-01T21:02:00Z"
+        },
+        {
+          "type": "poi",
+          "path": "pois/germany/Sachsen-Anhalt_oam.osm.poi",
+          "size": 0,
+          "modified": "2026-03-01T21:05:44Z"
+        },
+        {
+          "type": "base",
+          "path": "base/germany/Sachsen-Anhalt_sea_land.map",
+          "size": 0,
+          "modified": "2026-03-01T19:04:12Z"
+        }
+      ],
+      "tiles": [
+        "E10_N50"
+      ]
+    },
+    {
+      "id": "germany/Sachsen",
+      "polygon": [
+        [
+          12.13,
+          50.06
+        ],
+        [
+          11.77,
+          50.38113
+        ],
+        [
+          11.77,
+          51.52364
+        ],
+        [
+          12.39234,
+          51.76
+        ],
+        [
+          14.593,
+          51.76
+        ],
+        [
+          15.1376796,
+          51.5798965
+        ],
+        [
+          15.289,
+          51.25673
+        ],
+        [
+          15.289,
+          50.7
+        ],
+        [
+          14.41338,
+          50.7
+        ],
+        [
+          12.65252,
+          50.06
+        ],
+        [
+          12.13,
+          50.06
+        ]
+      ],
+      "files": [
+        {
+          "type": "map",
+          "path": "maps/germany/Sachsen_oam.osm.map",
+          "size": 0,
+          "modified": "2026-03-01T23:04:00Z"
+        },
+        {
+          "type": "poi",
+          "path": "pois/germany/Sachsen_oam.osm.poi",
+          "size": 0,
+          "modified": "2026-03-01T23:08:16Z"
+        },
+        {
+          "type": "base",
+          "path": "base/germany/Sachsen_sea_land.map",
+          "size": 0,
+          "modified": "2026-03-01T20:51:47Z"
+        }
+      ],
+      "tiles": [
+        "E10_N50",
+        "E15_N50"
+      ]
+    },
+    {
+      "id": "germany/Schleswig-Holstein",
+      "polygon": [
+        [
+          7.37,
+          55.2
+        ],
+        [
+          8.5,
+          55.2
+        ],
+        [
+          10.5,
+          55
+        ],
+        [
+          12,
+          54.57
+        ],
+        [
+          11.5,
+          53.5
+        ],
+        [
+          10.77,
+          53.245
+        ],
+        [
+          9.55,
+          53.245
+        ],
+        [
+          8.992095,
+          53.6360256
+        ],
+        [
+          7.37,
+          53.91336
+        ],
+        [
+          7.37,
+          54.82164
+        ],
+        [
+          7.37,
+          55.2
+        ]
+      ],
+      "files": [
+        {
+          "type": "map",
+          "path": "maps/germany/Schleswig-Holstein_oam.osm.map",
+          "size": 0,
+          "modified": "2026-03-01T22:32:00Z"
+        },
+        {
+          "type": "poi",
+          "path": "pois/germany/Schleswig-Holstein_oam.osm.poi",
+          "size": 0,
+          "modified": "2026-03-01T22:35:06Z"
+        },
+        {
+          "type": "base",
+          "path": "base/germany/Schleswig-Holstein_sea_land.map",
+          "size": 0,
+          "modified": "2026-03-01T21:05:25Z"
+        }
+      ],
+      "tiles": [
+        "E5_N50",
+        "E5_N55",
+        "E10_N50",
+        "E10_N55"
+      ]
+    },
+    {
+      "id": "germany/Thueringen",
+      "polygon": [
+        [
+          9.325,
+          50.65
+        ],
+        [
+          9.325,
+          51.346
+        ],
+        [
+          10,
+          51.81
+        ],
+        [
+          11,
+          51.81
+        ],
+        [
+          12.6,
+          51.366
+        ],
+        [
+          13.235,
+          51
+        ],
+        [
+          13.235,
+          50.424
+        ],
+        [
+          12.163,
+          49.98
+        ],
+        [
+          9.94,
+          49.98
+        ],
+        [
+          9.325,
+          50.65
+        ]
+      ],
+      "files": [
+        {
+          "type": "map",
+          "path": "maps/germany/Thueringen_oam.osm.map",
+          "size": 0,
+          "modified": "2026-03-01T19:50:00Z"
+        },
+        {
+          "type": "poi",
+          "path": "pois/germany/Thueringen_oam.osm.poi",
+          "size": 0,
+          "modified": "2026-03-01T19:55:53Z"
+        },
+        {
+          "type": "base",
+          "path": "base/germany/Thueringen_sea_land.map",
+          "size": 0,
+          "modified": "2026-03-01T16:37:07Z"
+        }
+      ],
+      "tiles": [
+        "E5_N45",
+        "E5_N50",
+        "E10_N45",
+        "E10_N50"
+      ]
     }
   ],
   "tiles": {
@@ -96,6 +1374,26 @@
       "size": 124743594,
       "modified": "2026-03-23T01:03:00Z"
     },
+    "E10_N55": {
+      "path": "segments4/E10_N55.rd5",
+      "size": 63832117,
+      "modified": "2026-03-23T01:03:00Z"
+    },
+    "E15_N45": {
+      "path": "segments4/E15_N45.rd5",
+      "size": 128314985,
+      "modified": "2026-03-23T01:03:00Z"
+    },
+    "E15_N50": {
+      "path": "segments4/E15_N50.rd5",
+      "size": 88895803,
+      "modified": "2026-03-23T01:03:00Z"
+    },
+    "E15_N55": {
+      "path": "segments4/E15_N55.rd5",
+      "size": 27998340,
+      "modified": "2026-03-23T01:03:00Z"
+    },
     "E5_N45": {
       "path": "segments4/E5_N45.rd5",
       "size": 250398956,
@@ -104,6 +1402,11 @@
     "E5_N50": {
       "path": "segments4/E5_N50.rd5",
       "size": 181628671,
+      "modified": "2026-03-23T01:03:00Z"
+    },
+    "E5_N55": {
+      "path": "segments4/E5_N55.rd5",
+      "size": 32979964,
       "modified": "2026-03-23T01:03:00Z"
     }
   }
