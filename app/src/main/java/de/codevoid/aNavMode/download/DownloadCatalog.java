@@ -119,10 +119,26 @@ public class DownloadCatalog {
 
     /**
      * Loads the catalog from disk, seeding from the bundled asset on first run.
+     * If the bundled asset is newer than the on-disk file, the asset wins —
+     * this ensures app updates that extend the region list take effect immediately.
+     * A mirror refresh (which is even newer) will still overwrite both.
      */
     public Catalog load() throws IOException, JSONException {
         if (!catalogFile.exists()) {
             copyAssetToDisk();
+        } else {
+            // Prefer the bundled asset if it has a newer "generated" timestamp.
+            try {
+                String assetJson = readAsset();
+                String diskJson  = readFile(catalogFile);
+                String assetGen  = new org.json.JSONObject(assetJson).optString("generated", "");
+                String diskGen   = new org.json.JSONObject(diskJson).optString("generated", "");
+                if (!assetGen.isEmpty() && assetGen.compareTo(diskGen) > 0) {
+                    copyAssetToDisk();
+                }
+            } catch (Exception ignored) {
+                // If comparison fails, keep the disk version — don't break a good catalog.
+            }
         }
         return parse(readFile(catalogFile));
     }
@@ -160,6 +176,14 @@ public class DownloadCatalog {
         try (InputStream in  = context.getAssets().open(ASSET_NAME);
              OutputStream out = new FileOutputStream(catalogFile)) {
             pipe(in, out);
+        }
+    }
+
+    private String readAsset() throws IOException {
+        try (InputStream in = context.getAssets().open(ASSET_NAME)) {
+            java.io.ByteArrayOutputStream buf = new java.io.ByteArrayOutputStream();
+            pipe(in, buf);
+            return buf.toString("UTF-8");
         }
     }
 
