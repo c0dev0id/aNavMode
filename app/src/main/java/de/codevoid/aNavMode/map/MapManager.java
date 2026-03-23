@@ -8,7 +8,7 @@ import org.mapsforge.core.model.MapPosition;
 import org.mapsforge.map.android.graphics.AndroidGraphicFactory;
 import org.mapsforge.map.android.util.AndroidUtil;
 import org.mapsforge.map.android.view.MapView;
-import org.mapsforge.map.datastore.MapDataStore;
+import org.mapsforge.map.datastore.MultiMapDataStore;
 import org.mapsforge.map.layer.cache.TileCache;
 import org.mapsforge.map.layer.renderer.TileRendererLayer;
 import org.mapsforge.map.reader.MapFile;
@@ -18,13 +18,15 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MapManager {
 
     private final Context context;
     private final MapView mapView;
     private TileRendererLayer tileLayer;
-    private TileCache tileCache;
+    private TileCache         tileCache;
 
     public MapManager(Context context, MapView mapView) {
         this.context = context;
@@ -33,46 +35,61 @@ public class MapManager {
     }
 
     public interface LoadCallback {
-        /** Called from the background thread once the tile layer is live. */
         void onLoaded();
-        /** Called from the background thread on any failure. */
         void onError(String reason);
     }
 
     /**
-     * Opens the map file and adds the tile layer in the background.
-     * The tile layer is inserted at index 0 (below all other layers).
-     * Callback is invoked from the background thread — use runOnUiThread for UI updates.
+     * Loads (or reloads) the tile layer.
+     *
+     * Always includes the bundled world.map as the base layer, then overlays
+     * any regional .map files found under /sdcard/aNavMode/maps/ so that
+     * downloaded regions show detail while blank areas fall back to the world map.
+     *
+     * Safe to call again after new maps are downloaded — tears down the old
+     * tile layer first.
      */
-    public void loadMapAsync(File mapFile, LoadCallback callback) {
+    public void loadMapAsync(LoadCallback callback) {
         new Thread(() -> {
-            if (!mapFile.exists()) {
-                callback.onError("file not found");
-                return;
+            // Tear down the old layer if reloading
+            if (tileLayer != null) {
+                mapView.getLayerManager().getLayers().remove(tileLayer);
+                tileLayer.onDestroy();
+                tileLayer = null;
             }
+            if (tileCache != null) {
+                tileCache.destroy();
+                tileCache = null;
+            }
+
             try {
+                MultiMapDataStore multi =
+                        new MultiMapDataStore(MultiMapDataStore.DataPolicy.RETURN_ALL);
+
+                // Base: bundled world map (always present)
+                File world = worldMapFile();
+                if (world.exists()) multi.addMapDataStore(new MapFile(world), false, false);
+
+                // Overlay: any downloaded regional maps
+                for (File f : findRegionalMaps()) {
+                    multi.addMapDataStore(new MapFile(f), false, false);
+                }
+
                 TileCache cache = AndroidUtil.createTileCache(
-                        context,
-                        "maincache",
+                        context, "maincache",
                         mapView.getModel().displayModel.getTileSize(),
                         1f,
-                        mapView.getModel().frameBufferModel.getOverdrawFactor()
-                );
+                        mapView.getModel().frameBufferModel.getOverdrawFactor());
 
-                MapDataStore mapDataStore = new MapFile(mapFile);
                 TileRendererLayer layer = new TileRendererLayer(
-                        cache,
-                        mapDataStore,
+                        cache, multi,
                         mapView.getModel().mapViewPosition,
-                        AndroidGraphicFactory.INSTANCE
-                );
+                        AndroidGraphicFactory.INSTANCE);
                 layer.setXmlRenderTheme(InternalRenderTheme.DEFAULT);
 
-                // Insert below all other layers; LayerManager is synchronized
                 mapView.getLayerManager().getLayers().add(0, layer);
-
                 tileCache = cache;
-                tileLayer  = layer;
+                tileLayer = layer;
                 callback.onLoaded();
             } catch (Exception e) {
                 callback.onError(e.getMessage());
@@ -81,37 +98,27 @@ public class MapManager {
     }
 
     /**
-     * TODO: Set your target area here.
-     *
-     * Replace the LatLong values with the center of your map region (decimal degrees).
-     * Zoom byte guide: 12 = city overview, 14 = neighbourhood, 16 = street level.
-     *
-     * Example (Berlin): new LatLong(52.520, 13.405)
+     * Scans /sdcard/aNavMode/maps/ recursively for downloaded .map files.
      */
-    public void setInitialPosition() {
-        mapView.getModel().mapViewPosition.setMapPosition(
-                new MapPosition(new LatLong(0.0, 0.0), (byte) 12)
-        );
+    private List<File> findRegionalMaps() {
+        List<File> result = new ArrayList<>();
+        File mapsDir = new File(Environment.getExternalStorageDirectory(), "aNavMode/maps");
+        if (mapsDir.isDirectory()) scanMaps(mapsDir, result);
+        return result;
+    }
+
+    private void scanMaps(File dir, List<File> out) {
+        File[] entries = dir.listFiles();
+        if (entries == null) return;
+        for (File f : entries) {
+            if (f.isDirectory()) scanMaps(f, out);
+            else if (f.getName().endsWith(".map")) out.add(f);
+        }
     }
 
     /**
-     * Map file at /sdcard/aNavMode/maps/default.map — survives app reinstall.
-     * Requires READ_EXTERNAL_STORAGE permission (requested at runtime in MainActivity).
+     * Seeds world.map from assets into internal storage on first use.
      */
-    public File getDefaultMapFile() {
-        return new File(Environment.getExternalStorageDirectory(), "aNavMode/maps/default.map");
-    }
-
-    /**
-     * Returns a usable map file: the external default if present, otherwise
-     * the bundled world.map seeded into internal storage.
-     */
-    public File getMapFileWithFallback() {
-        File external = getDefaultMapFile();
-        if (external.exists()) return external;
-        return worldMapFile();
-    }
-
     private File worldMapFile() {
         File dest = new File(context.getFilesDir(), "world.map");
         if (!dest.exists()) {
@@ -127,9 +134,10 @@ public class MapManager {
         return dest;
     }
 
-    /** POI file alongside the map: /sdcard/aNavMode/maps/default.poi */
-    public File getDefaultPoiFile() {
-        return new File(Environment.getExternalStorageDirectory(), "aNavMode/maps/default.poi");
+    public void setInitialPosition() {
+        mapView.getModel().mapViewPosition.setMapPosition(
+                new MapPosition(new LatLong(0.0, 0.0), (byte) 3)
+        );
     }
 
     public void destroy() {
@@ -137,8 +145,6 @@ public class MapManager {
             mapView.getLayerManager().getLayers().remove(tileLayer);
             tileLayer.onDestroy();
         }
-        if (tileCache != null) {
-            tileCache.destroy();
-        }
+        if (tileCache != null) tileCache.destroy();
     }
 }

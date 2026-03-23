@@ -126,6 +126,15 @@ public class MainActivity extends AppCompatActivity
                         findViewById(R.id.downloadCardContainer);
                 DownloadCardStack stack = new DownloadCardStack(cardContainer, domain);
                 domain.addListener(stack);
+                domain.addListener(state -> {
+                    if (state.queue.isEmpty()) {
+                        // All downloads done — reload tile layer to include new maps
+                        mapManager.loadMapAsync(new MapManager.LoadCallback() {
+                            @Override public void onLoaded() {}
+                            @Override public void onError(String r) {}
+                        });
+                    }
+                });
 
                 RegionDetector detector = new RegionDetector(c.regions);
                 detector.setListener(new RegionDetector.Listener() {
@@ -149,14 +158,9 @@ public class MainActivity extends AppCompatActivity
         }, "catalog-loader").start();
 
         // Load the map file off the main thread; tile layer is inserted at index 0 when ready
-        mapManager.loadMapAsync(mapManager.getMapFileWithFallback(), new MapManager.LoadCallback() {
-            @Override public void onLoaded() { /* tile layer already live */ }
-
-            @Override public void onError(String reason) {
-                runOnUiThread(() -> Toast.makeText(MainActivity.this,
-                        "No map file. Copy default.map to /sdcard/aNavMode/maps/",
-                        Toast.LENGTH_LONG).show());
-            }
+        mapManager.loadMapAsync(new MapManager.LoadCallback() {
+            @Override public void onLoaded() { /* tile layer live */ }
+            @Override public void onError(String reason) { /* world.map always present */ }
         });
     }
 
