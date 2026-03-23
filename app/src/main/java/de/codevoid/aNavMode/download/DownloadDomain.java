@@ -58,6 +58,7 @@ public class DownloadDomain {
     private static String buildAuth() {
         String user = de.codevoid.aNavMode.BuildConfig.MIRROR_USER;
         String key  = de.codevoid.aNavMode.BuildConfig.MIRROR_KEY;
+        android.util.Log.d(TAG, "buildAuth: user.len=" + user.length() + " key.len=" + key.length());
         if (user.isEmpty() || key.isEmpty()) return null;
         return "Basic " + java.util.Base64.getEncoder()
                 .encodeToString((user + ":" + key).getBytes());
@@ -272,7 +273,7 @@ public class DownloadDomain {
     private void downloadRegion(String regionId) throws Exception {
         Log.d(TAG, "downloadRegion start: " + regionId);
         if (!isNetworkOk()) throw new IOException("no suitable network");
-        Log.d(TAG, "network ok, mobile=" + onMobileData);
+        Log.d(TAG, "network ok, mobile=" + onMobileData + " auth=" + (MIRROR_AUTH != null ? "set" : "null"));
 
         // Refresh catalog before starting
         try {
