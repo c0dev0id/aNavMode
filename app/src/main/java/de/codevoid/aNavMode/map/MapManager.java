@@ -15,6 +15,9 @@ import org.mapsforge.map.reader.MapFile;
 import org.mapsforge.map.rendertheme.InternalRenderTheme;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 public class MapManager {
 
@@ -97,6 +100,31 @@ public class MapManager {
      */
     public File getDefaultMapFile() {
         return new File(Environment.getExternalStorageDirectory(), "aNavMode/maps/default.map");
+    }
+
+    /**
+     * Returns a usable map file: the external default if present, otherwise
+     * the bundled world.map seeded into internal storage.
+     */
+    public File getMapFileWithFallback() {
+        File external = getDefaultMapFile();
+        if (external.exists()) return external;
+        return worldMapFile();
+    }
+
+    private File worldMapFile() {
+        File dest = new File(context.getFilesDir(), "world.map");
+        if (!dest.exists()) {
+            try (InputStream  in  = context.getAssets().open("world.map");
+                 OutputStream out = new FileOutputStream(dest)) {
+                byte[] buf = new byte[8192];
+                int n;
+                while ((n = in.read(buf)) != -1) out.write(buf, 0, n);
+            } catch (Exception e) {
+                dest.delete();
+            }
+        }
+        return dest;
     }
 
     /** POI file alongside the map: /sdcard/aNavMode/maps/default.poi */

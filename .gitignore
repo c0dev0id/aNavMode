@@ -5,6 +5,7 @@ local.properties
 /build/
 app/build/
 *.map
+!app/src/main/assets/*.map
 *.poi
 brouter-*/
 mapdata/

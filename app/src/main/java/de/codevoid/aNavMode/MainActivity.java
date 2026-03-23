@@ -149,7 +149,7 @@ public class MainActivity extends AppCompatActivity
         }, "catalog-loader").start();
 
         // Load the map file off the main thread; tile layer is inserted at index 0 when ready
-        mapManager.loadMapAsync(mapManager.getDefaultMapFile(), new MapManager.LoadCallback() {
+        mapManager.loadMapAsync(mapManager.getMapFileWithFallback(), new MapManager.LoadCallback() {
             @Override public void onLoaded() { /* tile layer already live */ }
 
             @Override public void onError(String reason) {
