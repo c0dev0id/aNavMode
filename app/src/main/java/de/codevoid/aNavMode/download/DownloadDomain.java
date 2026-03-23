@@ -122,9 +122,9 @@ public class DownloadDomain {
     private final SharedPreferences              prefs;
 
     // Worker-thread state — only accessed on executor thread
-    private final List<String>        queueIds   = new ArrayList<>();
-    private boolean                   processing = false;
-    private DownloadCatalog.Catalog   catalog;
+    private final List<String>      queueIds   = new ArrayList<>();
+    private boolean                 processing = false;
+    private volatile DownloadCatalog.Catalog catalog;
 
     // Active-download progress — written on worker, read anywhere
     private volatile String activeRegionId       = null;
@@ -173,6 +173,35 @@ public class DownloadDomain {
 
     public void setMobileDataAllowed(boolean allowed) {
         prefs.edit().putBoolean(PREF_MOBILE, allowed).apply();
+    }
+
+    public enum Availability { NOT_DOWNLOADED, UPDATE_AVAILABLE, CURRENT }
+
+    /**
+     * Checks whether the region's files are present and up-to-date on disk.
+     * Safe to call from any thread.
+     */
+    public Availability getAvailability(DownloadCatalog.Region region) {
+        DownloadCatalog.Catalog snap = catalog;
+        boolean allPresent  = true;
+        boolean anyOutdated = false;
+        for (DownloadCatalog.CatalogFile f : region.files) {
+            File local = localFile(f.path);
+            if (!local.exists()) { allPresent = false; break; }
+            if (needsDownload(local, f.modified)) anyOutdated = true;
+        }
+        if (allPresent) {
+            for (String coord : region.tiles) {
+                DownloadCatalog.Tile tile = snap.tiles.get(coord);
+                if (tile == null) continue;
+                File local = localFile(tile.path);
+                if (!local.exists()) { allPresent = false; break; }
+                if (needsDownload(local, tile.modified)) anyOutdated = true;
+            }
+        }
+        if (!allPresent)  return Availability.NOT_DOWNLOADED;
+        if (anyOutdated)  return Availability.UPDATE_AVAILABLE;
+        return Availability.CURRENT;
     }
 
     /** Adds a region to the download queue (no-op if already queued). */

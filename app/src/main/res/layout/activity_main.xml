@@ -16,6 +16,16 @@
         android:clickable="false"
         android:focusable="false" />
 
+    <!-- Download card stack — top-right, cards stack downward -->
+    <LinearLayout
+        android:id="@+id/downloadCardContainer"
+        android:layout_width="220dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|end"
+        android:layout_margin="12dp"
+        android:orientation="vertical"
+        android:clipChildren="false" />
+
     <!-- Confirm: add waypoint at crosshair position -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabAddWaypoint"
