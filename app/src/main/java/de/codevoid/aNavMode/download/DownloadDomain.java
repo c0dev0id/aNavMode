@@ -290,6 +290,25 @@ public class DownloadDomain {
     public void removeListener(Listener l) { listeners.remove(l); }
     public int  queueSize()               { return queueIds.size(); }
 
+    /**
+     * Fetches the latest index.json from the mirror in the background and updates
+     * the in-memory catalog. Calls {@code onRefreshed} with the new region list
+     * if the refresh succeeds — caller should update RegionDetector and overlay.
+     * Safe to call from any thread.
+     */
+    public void refreshCatalogAsync(Consumer<List<DownloadCatalog.Region>> onRefreshed) {
+        new Thread(() -> {
+            try {
+                DownloadCatalog.Catalog fresh = catalogHelper.refresh(MIRROR_BASE, MIRROR_AUTH);
+                catalog = fresh;
+                Log.d(TAG, "startup catalog refresh: " + fresh.regions.size() + " regions");
+                if (onRefreshed != null) onRefreshed.accept(fresh.regions);
+            } catch (Exception e) {
+                Log.d(TAG, "startup catalog refresh failed: " + e.getMessage());
+            }
+        }, "catalog-refresh").start();
+    }
+
     public enum Availability { NOT_DOWNLOADED, UPDATE_AVAILABLE, CURRENT }
 
     /**

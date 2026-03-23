@@ -156,6 +156,13 @@ public class MainActivity extends AppCompatActivity
                     regionDetector = detector;
                     downloadCards  = stack;
                 });
+
+                // Refresh catalog from mirror in background; update detector + overlay
+                // with the fresh region list so newly added regions appear immediately.
+                domain.refreshCatalogAsync(regions -> {
+                    detector.updateRegions(regions);
+                    regionOverlay.updateRegions(regions);
+                });
             } catch (Exception e) {
                 android.util.Log.w("MainActivity", "catalog load failed", e);
             }
