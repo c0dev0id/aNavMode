@@ -417,7 +417,7 @@ public class DownloadDomain {
     private void downloadRegion(String regionId) throws Exception {
         Log.d(TAG, "downloadRegion start: " + regionId);
         if (!isNetworkOk()) throw new IOException("no suitable network");
-        Log.d(TAG, "network ok, mobile=" + onMobileData);
+        Log.d(TAG, "network ok");
 
         // Refresh catalog before starting
         try {
