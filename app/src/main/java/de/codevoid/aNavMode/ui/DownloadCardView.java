@@ -6,7 +6,6 @@ import android.graphics.drawable.GradientDrawable;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.widget.Button;
-import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -40,13 +39,16 @@ public class DownloadCardView extends LinearLayout {
     private static final int COLOR_BTN          = Color.argb(255,  30, 140, 255);
 
     private final GradientDrawable background;
+    private final GradientDrawable btnBg;
     private final TextView         nameView;
-    private final TextView         rightLabel;  // speed or "Queued"
-    private final Button           actionBtn;   // Download / Update
+    private final TextView         rightLabel;  // size, speed, or cancel label
+    private final Button           actionBtn;   // Download / Update / ✕
     private final ProgressBar      progressBar;
 
-    private CardState state    = CardState.DOWNLOAD;
-    private Runnable  onAction = null;
+    private CardState state      = CardState.DOWNLOAD;
+    private Runnable  onAction   = null;
+    private Runnable  onCancel   = null;
+    private long      totalBytes = 0;
 
     public DownloadCardView(Context context, String regionName) {
         super(context);
@@ -87,14 +89,11 @@ public class DownloadCardView extends LinearLayout {
 
         actionBtn = new Button(context);
         actionBtn.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
-        actionBtn.setTextColor(Color.WHITE);
         actionBtn.setAllCaps(false);
         actionBtn.setPadding(dp(8), dp(2), dp(8), dp(2));
-        GradientDrawable btnBg = new GradientDrawable();
-        btnBg.setColor(COLOR_BTN);
+        btnBg = new GradientDrawable();
         btnBg.setCornerRadius(dp(6));
         actionBtn.setBackground(btnBg);
-        actionBtn.setOnClickListener(v -> { if (onAction != null) onAction.run(); });
         topRow.addView(actionBtn, new LinearLayout.LayoutParams(
                 LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
 
@@ -124,28 +123,53 @@ public class DownloadCardView extends LinearLayout {
         state = s;
         switch (s) {
             case DOWNLOAD:
+                btnBg.setColor(COLOR_BTN);
+                actionBtn.setTextColor(Color.WHITE);
                 actionBtn.setText("Download");
+                actionBtn.setOnClickListener(v -> { if (onAction != null) onAction.run(); });
                 actionBtn.setVisibility(VISIBLE);
-                rightLabel.setVisibility(GONE);
+                rightLabel.setText(formatBytes(totalBytes));
+                rightLabel.setVisibility(totalBytes > 0 ? VISIBLE : GONE);
                 progressBar.setVisibility(GONE);
                 break;
             case UPDATE:
+                btnBg.setColor(COLOR_BTN);
+                actionBtn.setTextColor(Color.WHITE);
                 actionBtn.setText("Update");
+                actionBtn.setOnClickListener(v -> { if (onAction != null) onAction.run(); });
                 actionBtn.setVisibility(VISIBLE);
-                rightLabel.setVisibility(GONE);
+                rightLabel.setText(formatBytes(totalBytes));
+                rightLabel.setVisibility(totalBytes > 0 ? VISIBLE : GONE);
                 progressBar.setVisibility(GONE);
                 break;
             case QUEUED:
-                actionBtn.setVisibility(GONE);
-                rightLabel.setText("Queued");
-                rightLabel.setVisibility(VISIBLE);
+                btnBg.setColor(Color.TRANSPARENT);
+                actionBtn.setTextColor(COLOR_SECONDARY);
+                actionBtn.setText("✕");
+                actionBtn.setOnClickListener(v -> { if (onCancel != null) onCancel.run(); });
+                actionBtn.setVisibility(VISIBLE);
+                rightLabel.setText(formatBytes(totalBytes));
+                rightLabel.setVisibility(totalBytes > 0 ? VISIBLE : GONE);
                 progressBar.setVisibility(GONE);
                 break;
             case ACTIVE:
-                actionBtn.setVisibility(GONE);
+                btnBg.setColor(Color.TRANSPARENT);
+                actionBtn.setTextColor(COLOR_SECONDARY);
+                actionBtn.setText("✕");
+                actionBtn.setOnClickListener(v -> { if (onCancel != null) onCancel.run(); });
+                actionBtn.setVisibility(VISIBLE);
                 rightLabel.setVisibility(VISIBLE);
                 progressBar.setVisibility(VISIBLE);
                 break;
+        }
+    }
+
+    public void setTotalBytes(long bytes) {
+        totalBytes = bytes;
+        if (state == CardState.DOWNLOAD || state == CardState.UPDATE
+                || state == CardState.QUEUED) {
+            rightLabel.setText(formatBytes(bytes));
+            rightLabel.setVisibility(bytes > 0 ? VISIBLE : GONE);
         }
     }
 
@@ -164,6 +188,8 @@ public class DownloadCardView extends LinearLayout {
     }
 
     public void setOnAction(Runnable r) { onAction = r; }
+
+    public void setOnCancel(Runnable r) { onCancel = r; }
 
     // -------------------------------------------------------------------------
     // Fade animations
@@ -187,6 +213,13 @@ public class DownloadCardView extends LinearLayout {
 
     private static String truncate(String name) {
         return name.length() <= 16 ? name : name.substring(0, 13) + "…";
+    }
+
+    private static String formatBytes(long bytes) {
+        if (bytes <= 0) return "";
+        if (bytes >= 1_000_000_000L) return String.format("%.1f GB", bytes / 1_000_000_000.0);
+        if (bytes >= 1_000_000L)     return String.format("%.0f MB", bytes / 1_000_000.0);
+        return String.format("%.0f KB", bytes / 1_000.0);
     }
 
     private static String formatSpeed(long bps) {

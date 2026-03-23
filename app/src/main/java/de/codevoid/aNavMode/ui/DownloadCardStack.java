@@ -57,12 +57,15 @@ public class DownloadCardStack
         DownloadDomain.Availability avail = domain.getAvailability(region);
         if (avail == DownloadDomain.Availability.CURRENT) return;
 
+        final String regionId = region.id;
         DownloadCardView card = new DownloadCardView(container.getContext(), region.name);
+        card.setTotalBytes(domain.regionTotalSize(region));
         card.setState(avail == DownloadDomain.Availability.UPDATE_AVAILABLE
                 ? DownloadCardView.CardState.UPDATE
                 : DownloadCardView.CardState.DOWNLOAD);
         card.setHighlighted(true);
-        card.setOnAction(() -> domain.enqueue(region.id));
+        card.setOnAction(() -> domain.enqueue(regionId));
+        card.setOnCancel(() -> domain.cancel(regionId));
         card.setLayoutParams(new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT));
@@ -112,7 +115,10 @@ public class DownloadCardStack
             if (card == null) {
                 // Card was not added yet (e.g. enqueued programmatically, crosshair elsewhere)
                 // We still show it so the user can see queued/active downloads
+                final String capturedId = rd.regionId;
                 card = new DownloadCardView(container.getContext(), rd.regionName);
+                card.setTotalBytes(rd.totalCatalogBytes);
+                card.setOnCancel(() -> domain.cancel(capturedId));
                 card.setLayoutParams(new LinearLayout.LayoutParams(
                         LinearLayout.LayoutParams.MATCH_PARENT,
                         LinearLayout.LayoutParams.WRAP_CONTENT));
@@ -125,6 +131,7 @@ public class DownloadCardStack
                 card.setState(DownloadCardView.CardState.ACTIVE);
                 card.setProgress(rd.bytesDownloaded, rd.bytesTotal, state.speedBytesPerSec);
             } else {
+                card.setTotalBytes(rd.totalCatalogBytes);
                 card.setState(DownloadCardView.CardState.QUEUED);
             }
             card.setHighlighted(underCrosshair.contains(rd.regionId));

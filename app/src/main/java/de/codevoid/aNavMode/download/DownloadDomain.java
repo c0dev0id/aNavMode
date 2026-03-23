@@ -85,15 +85,19 @@ public class DownloadDomain {
         public final long         bytesDownloaded;
         /** Filename currently in flight; null when queued. */
         public final String       currentFile;
+        /** Sum of all catalog file sizes for this region (storage cost). */
+        public final long         totalCatalogBytes;
 
         RegionDownload(String regionId, String regionName, RegionStatus status,
-                       long bytesTotal, long bytesDownloaded, String currentFile) {
-            this.regionId        = regionId;
-            this.regionName      = regionName;
-            this.status          = status;
-            this.bytesTotal      = bytesTotal;
-            this.bytesDownloaded = bytesDownloaded;
-            this.currentFile     = currentFile;
+                       long bytesTotal, long bytesDownloaded, String currentFile,
+                       long totalCatalogBytes) {
+            this.regionId          = regionId;
+            this.regionName        = regionName;
+            this.status            = status;
+            this.bytesTotal        = bytesTotal;
+            this.bytesDownloaded   = bytesDownloaded;
+            this.currentFile       = currentFile;
+            this.totalCatalogBytes = totalCatalogBytes;
         }
     }
 
@@ -135,6 +139,11 @@ public class DownloadDomain {
     private final List<String>      queueIds   = new ArrayList<>();
     private boolean                 processing = false;
     private volatile DownloadCatalog.Catalog catalog;
+
+    // Cancel support — cancelCurrent is written from any thread, read on worker
+    private volatile boolean cancelCurrent = false;
+
+    private static final class CancelledException extends Exception {}
 
     // Active-download progress — written on worker, read anywhere
     private volatile String activeRegionId       = null;
@@ -342,6 +351,38 @@ public class DownloadDomain {
         });
     }
 
+    /**
+     * Cancels a queued or active download.
+     * For the active region the worker loop is signalled via a flag and stops
+     * at the next chunk boundary. For queued regions the entry is removed
+     * synchronously on the executor thread.
+     */
+    public void cancel(String regionId) {
+        if (regionId.equals(activeRegionId)) {
+            cancelCurrent = true; // checked in downloadFile() read loop
+        } else {
+            executor.execute(() -> {
+                if (queueIds.remove(regionId)) {
+                    DownloadCatalog.Region r = findRegion(regionId);
+                    if (r != null) clearMeta(r);
+                    publishState();
+                }
+            });
+        }
+    }
+
+    /** Total catalog storage cost for a region (sum of all file + tile sizes). */
+    public long regionTotalSize(DownloadCatalog.Region region) {
+        DownloadCatalog.Catalog snap = catalog;
+        long total = 0;
+        for (DownloadCatalog.CatalogFile f : region.files) total += f.size;
+        for (String coord : region.tiles) {
+            DownloadCatalog.Tile t = snap.tiles.get(coord);
+            if (t != null) total += t.size;
+        }
+        return total;
+    }
+
     public void destroy() {
         instance = null;
         executor.shutdownNow();
@@ -358,10 +399,14 @@ public class DownloadDomain {
 
             String regionId = queueIds.get(0);
             activeRegionId = regionId;
+            cancelCurrent  = false; // clear any stale signal from previous iteration
             publishState();
 
             try {
                 downloadRegion(regionId);
+            } catch (CancelledException e) {
+                cancelCurrent = false;
+                Log.d(TAG, "cancelled: " + regionId);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 activeRegionId = null;
@@ -539,6 +584,7 @@ public class DownloadDomain {
             while ((n = in.read(buf)) != -1) {
                 if (!isNetworkOk()) throw new IOException("network lost");
                 if (Thread.currentThread().isInterrupted()) throw new InterruptedException();
+                if (cancelCurrent) throw new CancelledException();
                 out.write(buf, 0, n);
                 activeBytesDownloaded += n;
                 trackSpeed(n);
@@ -611,13 +657,16 @@ public class DownloadDomain {
         List<RegionDownload> list = new ArrayList<>(queueIds.size());
         for (String id : queueIds) {
             boolean active = id.equals(activeRegionId);
+            DownloadCatalog.Region r = findRegion(id);
+            long catalogBytes = r != null ? regionTotalSize(r) : 0;
             list.add(new RegionDownload(
                     id,
                     regionName(id),
                     active ? RegionStatus.ACTIVE : RegionStatus.QUEUED,
                     active ? activeBytesTotal      : 0,
                     active ? activeBytesDownloaded : 0,
-                    active ? activeFile            : null));
+                    active ? activeFile            : null,
+                    catalogBytes));
         }
         State s = new State(list, speedBytesPerSec);
         for (Listener l : listeners) l.onStateChanged(s);
