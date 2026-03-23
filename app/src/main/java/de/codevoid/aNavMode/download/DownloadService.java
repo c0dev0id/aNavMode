@@ -86,11 +86,9 @@ public class DownloadService extends Service implements DownloadDomain.Listener 
             title = state.queue.get(0).regionName + " (queued)";
         }
 
-        NotificationManager nm =
-                (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-        if (nm != null) {
-            nm.notify(NOTIF_ID, buildNotification(title, done, total));
-        }
+        // Update the foreground notification via startForeground — exempt from
+        // POST_NOTIFICATIONS permission (foreground service notifications are always allowed).
+        startForeground(NOTIF_ID, buildNotification(title, done, total));
     }
 
     // -------------------------------------------------------------------------
