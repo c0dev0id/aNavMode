@@ -27,6 +27,7 @@ import de.codevoid.aNavMode.download.RegionDetector;
 import de.codevoid.aNavMode.map.LocationHelper;
 import de.codevoid.aNavMode.map.MapManager;
 import de.codevoid.aNavMode.map.PanController;
+import de.codevoid.aNavMode.map.RegionOverlayLayer;
 import de.codevoid.aNavMode.map.WaypointLayer;
 import de.codevoid.aNavMode.remote.RemoteControlManager;
 import de.codevoid.aNavMode.remote.RemoteEvent;
@@ -44,6 +45,7 @@ public class MainActivity extends AppCompatActivity
     private PanController         panController;
     private LocationHelper        locationHelper;
     private RegionDetector        regionDetector;
+    private RegionOverlayLayer    regionOverlay;
 
     private final Choreographer.FrameCallback frameCallback = new Choreographer.FrameCallback() {
         private long lastFrameNanos = 0;
@@ -95,6 +97,10 @@ public class MainActivity extends AppCompatActivity
         // Domain and layer are ready immediately; map tiles stream in once the file is open
         routingDomain = new RoutingDomain(new BRouterEngine(this), mapView);
 
+        // RegionOverlayLayer sits above tiles (index 1), below WaypointLayer
+        regionOverlay = new RegionOverlayLayer(mapView);
+        mapView.getLayerManager().getLayers().add(regionOverlay);
+
         // WaypointLayer must be the last (topmost) layer so it receives taps first
         waypointLayer = new WaypointLayer(mapView, routingDomain,
                 getResources().getDisplayMetrics().density);
@@ -109,7 +115,17 @@ public class MainActivity extends AppCompatActivity
                 DownloadCatalog catalog = new DownloadCatalog(this);
                 DownloadCatalog.Catalog c = catalog.load();
                 RegionDetector detector = new RegionDetector(c.regions);
-                // TODO: wire detector listener to DownloadCardStack
+                detector.setListener(new RegionDetector.Listener() {
+                    @Override public void onEnter(DownloadCatalog.Region r) {
+                        regionOverlay.setCurrentRegion(r.id);
+                        // TODO: show download card
+                    }
+                    @Override public void onLeave(DownloadCatalog.Region r) {
+                        regionOverlay.setCurrentRegion(null);
+                        // TODO: hide download card
+                    }
+                });
+                regionOverlay.updateRegions(c.regions);
                 runOnUiThread(() -> regionDetector = detector);
             } catch (Exception e) {
                 android.util.Log.w("MainActivity", "catalog load failed", e);
@@ -243,6 +259,7 @@ public class MainActivity extends AppCompatActivity
     protected void onDestroy() {
         if (locationHelper  != null) locationHelper.cancel();
         if (waypointLayer   != null) waypointLayer.destroy();
+        if (regionOverlay   != null) mapView.getLayerManager().getLayers().remove(regionOverlay);
         if (routingDomain   != null) routingDomain.destroy();
         mapManager.destroy();
         mapView.destroyAll();
