@@ -22,6 +22,7 @@ import org.mapsforge.map.android.graphics.AndroidGraphicFactory;
 import org.mapsforge.map.android.view.MapView;
 
 import de.codevoid.aNavMode.debug.DebugSheet;
+import de.codevoid.aNavMode.map.LocationHelper;
 import de.codevoid.aNavMode.map.MapManager;
 import de.codevoid.aNavMode.map.PanController;
 import de.codevoid.aNavMode.map.WaypointLayer;
@@ -37,6 +38,7 @@ public class MainActivity extends AppCompatActivity
     private WaypointLayer         waypointLayer;
     private RemoteControlManager  remoteControl;
     private PanController         panController;
+    private LocationHelper        locationHelper;
 
     private final Choreographer.FrameCallback frameCallback = new Choreographer.FrameCallback() {
         private long lastFrameNanos = 0;
@@ -51,7 +53,8 @@ public class MainActivity extends AppCompatActivity
         }
     };
 
-    private static final int REQ_STORAGE = 1;
+    private static final int REQ_STORAGE  = 1;
+    private static final int REQ_LOCATION = 2;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,6 +93,21 @@ public class MainActivity extends AppCompatActivity
                 getResources().getDisplayMetrics().density);
         waypointLayer.setListener(this);
         mapView.getLayerManager().getLayers().add(waypointLayer);
+
+        locationHelper = new LocationHelper(this);
+        locateAndCenter();
+    }
+
+    private void locateAndCenter() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQ_LOCATION);
+            return;
+        }
+        locationHelper.fetchOnce((lat, lon) ->
+                mapView.getModel().mapViewPosition.setCenter(
+                        new org.mapsforge.core.model.LatLong(lat, lon)));
     }
 
     private void requestStorageAndInit() {
@@ -126,6 +144,10 @@ public class MainActivity extends AppCompatActivity
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == REQ_STORAGE) {
             initMap();
+        } else if (requestCode == REQ_LOCATION) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                locateAndCenter();
+            }
         }
     }
 
@@ -189,7 +211,8 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     protected void onDestroy() {
-        waypointLayer.destroy();
+        if (locationHelper != null) locationHelper.cancel();
+        if (waypointLayer != null) waypointLayer.destroy();
         mapManager.destroy();
         mapView.destroyAll();
         AndroidGraphicFactory.clearResourceMemoryCache();
