@@ -14,7 +14,6 @@ import java.util.List;
 
 import btools.router.OsmNodeNamed;
 import btools.router.OsmPathElement;
-import btools.router.OsmTrack;
 import btools.router.RoutingContext;
 import btools.router.RoutingEngine;
 
@@ -76,7 +75,7 @@ public class BRouterEngine implements de.codevoid.aNavMode.routing.RoutingEngine
             RoutingContext rc = new RoutingContext();
             rc.localFunction = profileFile.getAbsolutePath();
 
-            ExposedRoutingEngine engine = new ExposedRoutingEngine(
+            RoutingEngine engine = new RoutingEngine(
                     null, null, segmentDir, waypoints, rc);
             engine.quite = true;
             engine.start();
@@ -133,13 +132,4 @@ public class BRouterEngine implements de.codevoid.aNavMode.routing.RoutingEngine
         return n;
     }
 
-    /** Subclass solely to expose protected fields of RoutingEngine. */
-    private static final class ExposedRoutingEngine extends RoutingEngine {
-        ExposedRoutingEngine(String out, String log, File seg,
-                             List<OsmNodeNamed> wp, RoutingContext rc) {
-            super(out, log, seg, wp, rc);
-        }
-        String getErrorMessage() { return errorMessage; }
-        OsmTrack getFoundTrack() { return foundTrack; }
-    }
 }
