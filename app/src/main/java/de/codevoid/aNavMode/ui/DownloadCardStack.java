@@ -55,6 +55,7 @@ public class DownloadCardStack
         }
 
         DownloadDomain.Availability avail = domain.getAvailability(region);
+        android.util.Log.d("DownloadCardStack", "onEnter: " + region.id + " avail=" + avail);
         if (avail == DownloadDomain.Availability.CURRENT) return;
 
         final String regionId = region.id;

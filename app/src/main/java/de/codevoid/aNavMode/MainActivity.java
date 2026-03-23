@@ -115,12 +115,15 @@ public class MainActivity extends AppCompatActivity
 
         new Thread(() -> {
             try {
+                android.util.Log.d("MainActivity", "catalog-loader: start");
                 DownloadCatalog catalog = new DownloadCatalog(this);
                 DownloadCatalog.Catalog c = catalog.load();
+                android.util.Log.d("MainActivity", "catalog-loader: loaded " + c.regions.size() + " regions");
                 if (DownloadDomain.getInstance() == null) {
                     new DownloadDomain(MainActivity.this, c);
                 }
                 DownloadDomain domain = DownloadDomain.getInstance();
+                android.util.Log.d("MainActivity", "catalog-loader: domain ready, queue=" + domain.queueSize());
 
                 android.widget.LinearLayout cardContainer =
                         findViewById(R.id.downloadCardContainer);
@@ -149,6 +152,7 @@ public class MainActivity extends AppCompatActivity
                 });
                 regionOverlay.updateRegions(c.regions);
                 runOnUiThread(() -> {
+                    android.util.Log.d("MainActivity", "catalog-loader: detector active");
                     regionDetector = detector;
                     downloadCards  = stack;
                 });

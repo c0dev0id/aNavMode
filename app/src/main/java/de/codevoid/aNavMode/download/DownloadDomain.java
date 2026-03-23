@@ -288,6 +288,7 @@ public class DownloadDomain {
 
     public void addListener(Listener l)    { listeners.add(l); }
     public void removeListener(Listener l) { listeners.remove(l); }
+    public int  queueSize()               { return queueIds.size(); }
 
     public enum Availability { NOT_DOWNLOADED, UPDATE_AVAILABLE, CURRENT }
 
