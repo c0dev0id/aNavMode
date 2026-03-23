@@ -2,12 +2,10 @@ package de.codevoid.aNavMode.download;
 
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkCapabilities;
 import android.net.NetworkRequest;
-import android.os.Build;
 import android.os.Environment;
 import android.util.Log;
 
@@ -16,7 +14,6 @@ import org.json.JSONException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -32,6 +29,8 @@ import java.util.TimeZone;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 /**
  * Owns the map/segment download queue.
@@ -64,8 +63,6 @@ public class DownloadDomain {
     }
 
     private static final String TAG            = "DownloadDomain";
-    private static final String PREFS_NAME     = "download";
-    private static final String PREF_MOBILE    = "allow_mobile_data";
     private static final int    CONNECT_MS     = 10_000;
     private static final int    READ_MS        = 60_000;
     private static final int    BUF            = 32_768;
@@ -133,7 +130,6 @@ public class DownloadDomain {
     private final DownloadCatalog                catalogHelper;
     private final ExecutorService                executor;
     private final CopyOnWriteArrayList<Listener> listeners = new CopyOnWriteArrayList<>();
-    private final SharedPreferences              prefs;
 
     // Worker-thread state — only accessed on executor thread
     private final List<String>      queueIds   = new ArrayList<>();
@@ -158,7 +154,6 @@ public class DownloadDomain {
 
     // Network state — written from ConnectivityManager callback, read on worker
     private volatile boolean networkAvailable = true;
-    private volatile boolean onMobileData     = false;
 
     private ConnectivityManager.NetworkCallback networkCallback;
 
@@ -170,7 +165,6 @@ public class DownloadDomain {
         this.context       = context.getApplicationContext();
         this.catalog       = initialCatalog;
         this.catalogHelper = new DownloadCatalog(context);
-        this.prefs         = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
         this.executor      = Executors.newSingleThreadExecutor(
                 r -> new Thread(r, "download-worker"));
         instance = this;
@@ -184,19 +178,8 @@ public class DownloadDomain {
      */
     private void restoreQueue() {
         for (DownloadCatalog.Region region : catalog.regions) {
-            for (DownloadCatalog.CatalogFile f : region.files) {
-                if (localMetaFile(f.path).exists()) {
-                    queueIds.add(region.id);
-                    break;
-                }
-            }
-            if (queueIds.contains(region.id)) continue;
-            for (String coord : region.tiles) {
-                DownloadCatalog.Tile tile = catalog.tiles.get(coord);
-                if (tile != null && localMetaFile(tile.path).exists()) {
-                    queueIds.add(region.id);
-                    break;
-                }
+            if (anyFilePath(region, path -> localMetaFile(path).exists())) {
+                queueIds.add(region.id);
             }
         }
         if (!queueIds.isEmpty()) {
@@ -212,6 +195,27 @@ public class DownloadDomain {
 
     private File localMetaFile(String mirrorPath) {
         return new File(context.getFilesDir(), "meta/" + mirrorPath + ".meta");
+    }
+
+    /** Calls action with the mirrorPath of every file and tile in the region. */
+    private void forEachFilePath(DownloadCatalog.Region region, Consumer<String> action) {
+        DownloadCatalog.Catalog snap = catalog;
+        for (DownloadCatalog.CatalogFile f : region.files) action.accept(f.path);
+        for (String coord : region.tiles) {
+            DownloadCatalog.Tile t = snap.tiles.get(coord);
+            if (t != null) action.accept(t.path);
+        }
+    }
+
+    /** Returns true if any file or tile mirrorPath in the region satisfies the predicate. */
+    private boolean anyFilePath(DownloadCatalog.Region region, Predicate<String> test) {
+        DownloadCatalog.Catalog snap = catalog;
+        for (DownloadCatalog.CatalogFile f : region.files) if (test.test(f.path)) return true;
+        for (String coord : region.tiles) {
+            DownloadCatalog.Tile t = snap.tiles.get(coord);
+            if (t != null && test.test(t.path)) return true;
+        }
+        return false;
     }
 
     /** Downloads the .meta file for mirrorPath into local meta storage. Best-effort. */
@@ -273,11 +277,7 @@ public class DownloadDomain {
 
     /** Deletes all local .meta files for a region (called on completion or cancel). */
     private void clearMeta(DownloadCatalog.Region region) {
-        for (DownloadCatalog.CatalogFile f : region.files) localMetaFile(f.path).delete();
-        for (String coord : region.tiles) {
-            DownloadCatalog.Tile tile = catalog.tiles.get(coord);
-            if (tile != null) localMetaFile(tile.path).delete();
-        }
+        forEachFilePath(region, path -> localMetaFile(path).delete());
     }
 
     public static DownloadDomain getInstance() { return instance; }
@@ -288,14 +288,6 @@ public class DownloadDomain {
 
     public void addListener(Listener l)    { listeners.add(l); }
     public void removeListener(Listener l) { listeners.remove(l); }
-
-    public boolean isMobileDataAllowed() {
-        return prefs.getBoolean(PREF_MOBILE, false);
-    }
-
-    public void setMobileDataAllowed(boolean allowed) {
-        prefs.edit().putBoolean(PREF_MOBILE, allowed).apply();
-    }
 
     public enum Availability { NOT_DOWNLOADED, UPDATE_AVAILABLE, CURRENT }
 
@@ -332,13 +324,7 @@ public class DownloadDomain {
             if (queueIds.contains(regionId)) return;
             // Fetch meta files immediately — their presence on disk is the queue ledger.
             DownloadCatalog.Region region = findRegion(regionId);
-            if (region != null) {
-                for (DownloadCatalog.CatalogFile f : region.files) fetchMeta(f.path);
-                for (String coord : region.tiles) {
-                    DownloadCatalog.Tile tile = catalog.tiles.get(coord);
-                    if (tile != null) fetchMeta(tile.path);
-                }
-            }
+            if (region != null) forEachFilePath(region, this::fetchMeta);
             queueIds.add(regionId);
             publishState();
             if (!processing) {
@@ -688,9 +674,7 @@ public class DownloadDomain {
     // -------------------------------------------------------------------------
 
     private boolean isNetworkOk() {
-        if (!networkAvailable) return false;
-        if (onMobileData && !isMobileDataAllowed()) return false;
-        return true;
+        return networkAvailable;
     }
 
     private void registerNetworkCallback() {
@@ -700,10 +684,6 @@ public class DownloadDomain {
 
         networkCallback = new ConnectivityManager.NetworkCallback() {
             @Override public void onAvailable(Network net) {
-                NetworkCapabilities caps = cm.getNetworkCapabilities(net);
-                onMobileData = caps != null
-                        && !caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)
-                        && !caps.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET);
                 networkAvailable = true;
                 // Restart the download loop if queue is non-empty and idle
                 executor.execute(() -> {

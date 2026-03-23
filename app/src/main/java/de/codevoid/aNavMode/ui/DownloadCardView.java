@@ -123,19 +123,10 @@ public class DownloadCardView extends LinearLayout {
         state = s;
         switch (s) {
             case DOWNLOAD:
-                btnBg.setColor(COLOR_BTN);
-                actionBtn.setTextColor(Color.WHITE);
-                actionBtn.setText("Download");
-                actionBtn.setOnClickListener(v -> { if (onAction != null) onAction.run(); });
-                actionBtn.setVisibility(VISIBLE);
-                rightLabel.setText(formatBytes(totalBytes));
-                rightLabel.setVisibility(totalBytes > 0 ? VISIBLE : GONE);
-                progressBar.setVisibility(GONE);
-                break;
             case UPDATE:
                 btnBg.setColor(COLOR_BTN);
                 actionBtn.setTextColor(Color.WHITE);
-                actionBtn.setText("Update");
+                actionBtn.setText(s == CardState.DOWNLOAD ? "Download" : "Update");
                 actionBtn.setOnClickListener(v -> { if (onAction != null) onAction.run(); });
                 actionBtn.setVisibility(VISIBLE);
                 rightLabel.setText(formatBytes(totalBytes));
@@ -143,23 +134,20 @@ public class DownloadCardView extends LinearLayout {
                 progressBar.setVisibility(GONE);
                 break;
             case QUEUED:
-                btnBg.setColor(Color.TRANSPARENT);
-                actionBtn.setTextColor(COLOR_SECONDARY);
-                actionBtn.setText("✕");
-                actionBtn.setOnClickListener(v -> { if (onCancel != null) onCancel.run(); });
-                actionBtn.setVisibility(VISIBLE);
-                rightLabel.setText(formatBytes(totalBytes));
-                rightLabel.setVisibility(totalBytes > 0 ? VISIBLE : GONE);
-                progressBar.setVisibility(GONE);
-                break;
             case ACTIVE:
                 btnBg.setColor(Color.TRANSPARENT);
                 actionBtn.setTextColor(COLOR_SECONDARY);
                 actionBtn.setText("✕");
                 actionBtn.setOnClickListener(v -> { if (onCancel != null) onCancel.run(); });
                 actionBtn.setVisibility(VISIBLE);
-                rightLabel.setVisibility(VISIBLE);
-                progressBar.setVisibility(VISIBLE);
+                if (s == CardState.QUEUED) {
+                    rightLabel.setText(formatBytes(totalBytes));
+                    rightLabel.setVisibility(totalBytes > 0 ? VISIBLE : GONE);
+                    progressBar.setVisibility(GONE);
+                } else {
+                    rightLabel.setVisibility(VISIBLE);
+                    progressBar.setVisibility(VISIBLE);
+                }
                 break;
         }
     }
