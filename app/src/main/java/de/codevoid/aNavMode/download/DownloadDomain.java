@@ -260,7 +260,9 @@ public class DownloadDomain {
     }
 
     private void downloadRegion(String regionId) throws Exception {
+        Log.d(TAG, "downloadRegion start: " + regionId);
         if (!isNetworkOk()) throw new IOException("no suitable network");
+        Log.d(TAG, "network ok, mobile=" + onMobileData);
 
         // Refresh catalog before starting
         try {
@@ -271,6 +273,7 @@ public class DownloadDomain {
 
         DownloadCatalog.Region region = findRegion(regionId);
         if (region == null) throw new IllegalArgumentException("unknown region: " + regionId);
+        Log.d(TAG, "region found: " + region.name + ", files=" + region.files.size() + ", tiles=" + region.tiles.size());
 
         // ---- Phase 1: HEAD all files to compute total size ----
         List<String[]> downloads = new ArrayList<>(); // [url, localPath, mirrorPath]
@@ -278,11 +281,12 @@ public class DownloadDomain {
 
         for (DownloadCatalog.CatalogFile f : region.files) {
             File local = localFile(f.path);
-            if (!needsDownload(local, f.modified)) continue;
+            if (!needsDownload(local, f.modified)) { Log.d(TAG, "skip (current): " + f.path); continue; }
             String url = MIRROR_BASE + "/" + f.path;
-            long size = headFile(url);
-            if (size < 0) throw new IOException("captive portal detected");
-            total += size;
+            Log.d(TAG, "HEAD " + url);
+            long size = headFile(url); // throws on captive portal; -1 = unknown size
+            Log.d(TAG, "HEAD ok, size=" + size);
+            if (size > 0) total += size;
             downloads.add(new String[]{url, local.getAbsolutePath(), f.path});
         }
 
@@ -292,9 +296,8 @@ public class DownloadDomain {
             File local = localFile(tile.path);
             if (!needsDownload(local, tile.modified)) continue;
             String url = MIRROR_BASE + "/" + tile.path;
-            long size = headFile(url);
-            if (size < 0) throw new IOException("captive portal detected");
-            total += size;
+            long size = headFile(url); // throws on captive portal; -1 = unknown size
+            if (size > 0) total += size;
             downloads.add(new String[]{url, local.getAbsolutePath(), tile.path});
         }
 
@@ -322,7 +325,8 @@ public class DownloadDomain {
     // -------------------------------------------------------------------------
 
     /**
-     * Issues a HEAD request. Returns Content-Length, or -1 if the response
+     * Issues a HEAD request. Returns Content-Length, or -1 if the server did
+     * not send one (chunked / unknown size). Throws IOException if the response
      * looks like a captive portal (HTML content type).
      */
     private long headFile(String urlStr) throws IOException {
@@ -334,10 +338,12 @@ public class DownloadDomain {
             conn.disconnect();
             throw new IOException("HEAD " + status + " for " + urlStr);
         }
-        String ct = conn.getContentType();
+        String ct   = conn.getContentType();
+        long   size = conn.getContentLengthLong();
         conn.disconnect();
-        if (ct != null && ct.contains("text/html")) return -1; // captive portal
-        return conn.getContentLengthLong();
+        if (ct != null && ct.contains("text/html"))
+            throw new IOException("captive portal detected at " + urlStr);
+        return size; // may be -1 if no Content-Length header
     }
 
     /**
@@ -361,9 +367,8 @@ public class DownloadDomain {
                 String suffix = p.getName().substring(prefix.length());
                 try {
                     long encodedSize = Long.parseLong(suffix);
-                    // HEAD to confirm remote hasn't changed
+                    // HEAD to confirm remote hasn't changed (throws on captive portal)
                     remoteSize = headFile(urlStr);
-                    if (remoteSize < 0) throw new IOException("captive portal");
                     if (encodedSize == remoteSize) {
                         temp         = p;
                         partialBytes = p.length();
@@ -378,9 +383,11 @@ public class DownloadDomain {
         }
 
         if (temp == null) {
-            if (remoteSize < 0) remoteSize = headFile(urlStr);
-            if (remoteSize < 0) throw new IOException("captive portal");
-            temp = new File(dest.getParent(), prefix + remoteSize);
+            if (remoteSize < 0) remoteSize = headFile(urlStr); // throws on captive portal
+            // If Content-Length is unknown (-1), skip resume — download fresh with a plain temp name
+            temp = remoteSize > 0
+                    ? new File(dest.getParent(), prefix + remoteSize)
+                    : new File(dest.getParent(), dest.getName() + ".tmp");
         }
 
         // Download (or resume)
