@@ -67,6 +67,7 @@ public class DownloadDomain {
     private static final String TAG            = "DownloadDomain";
     private static final String PREFS_NAME     = "download";
     private static final String PREF_MOBILE    = "allow_mobile_data";
+    private static final String PREF_QUEUE     = "queue";
     private static final int    CONNECT_MS     = 10_000;
     private static final int    READ_MS        = 60_000;
     private static final int    BUF            = 32_768;
@@ -167,6 +168,28 @@ public class DownloadDomain {
                 r -> new Thread(r, "download-worker"));
         instance = this;
         registerNetworkCallback();
+        restoreQueue();
+    }
+
+    private void restoreQueue() {
+        String saved = prefs.getString(PREF_QUEUE, "");
+        if (saved.isEmpty()) return;
+        for (String id : saved.split(",")) {
+            if (!id.isEmpty()) queueIds.add(id);
+        }
+        if (!queueIds.isEmpty()) {
+            executor.execute(() -> {
+                processing = true;
+                startService();
+                processQueue();
+                processing = false;
+                if (queueIds.isEmpty()) stopService();
+            });
+        }
+    }
+
+    private void saveQueue() {
+        prefs.edit().putString(PREF_QUEUE, String.join(",", queueIds)).apply();
     }
 
     public static DownloadDomain getInstance() { return instance; }
@@ -220,6 +243,7 @@ public class DownloadDomain {
         executor.execute(() -> {
             if (queueIds.contains(regionId)) return;
             queueIds.add(regionId);
+            saveQueue();
             publishState();
             if (!processing) {
                 processing = true;
@@ -266,6 +290,7 @@ public class DownloadDomain {
             activeFile            = null;
             speedBytesPerSec      = 0;
             queueIds.remove(0);
+            saveQueue();
             publishState();
         }
     }
