@@ -143,7 +143,7 @@ public class DownloadDomain {
     // Cancel support — cancelCurrent is written from any thread, read on worker
     private volatile boolean cancelCurrent = false;
 
-    private static final class CancelledException extends Exception {}
+    private static final class CancelledException extends RuntimeException {}
 
     // Active-download progress — written on worker, read anywhere
     private volatile String activeRegionId       = null;
