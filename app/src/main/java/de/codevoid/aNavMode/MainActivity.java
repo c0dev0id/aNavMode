@@ -22,6 +22,8 @@ import org.mapsforge.map.android.graphics.AndroidGraphicFactory;
 import org.mapsforge.map.android.view.MapView;
 
 import de.codevoid.aNavMode.debug.DebugSheet;
+import de.codevoid.aNavMode.download.DownloadCatalog;
+import de.codevoid.aNavMode.download.RegionDetector;
 import de.codevoid.aNavMode.map.LocationHelper;
 import de.codevoid.aNavMode.map.MapManager;
 import de.codevoid.aNavMode.map.PanController;
@@ -41,6 +43,7 @@ public class MainActivity extends AppCompatActivity
     private RemoteControlManager  remoteControl;
     private PanController         panController;
     private LocationHelper        locationHelper;
+    private RegionDetector        regionDetector;
 
     private final Choreographer.FrameCallback frameCallback = new Choreographer.FrameCallback() {
         private long lastFrameNanos = 0;
@@ -51,6 +54,11 @@ public class MainActivity extends AppCompatActivity
                 panController.onFrame(frameTimeNanos, frameTimeNanos - lastFrameNanos);
             }
             lastFrameNanos = frameTimeNanos;
+            if (regionDetector != null) {
+                org.mapsforge.core.model.LatLong c =
+                        mapView.getModel().mapViewPosition.getCenter();
+                regionDetector.check(c.latitude, c.longitude);
+            }
             Choreographer.getInstance().postFrameCallback(this);
         }
     };
@@ -95,6 +103,18 @@ public class MainActivity extends AppCompatActivity
 
         locationHelper = new LocationHelper(this);
         locateAndCenter();
+
+        new Thread(() -> {
+            try {
+                DownloadCatalog catalog = new DownloadCatalog(this);
+                DownloadCatalog.Catalog c = catalog.load();
+                RegionDetector detector = new RegionDetector(c.regions);
+                // TODO: wire detector listener to DownloadCardStack
+                runOnUiThread(() -> regionDetector = detector);
+            } catch (Exception e) {
+                android.util.Log.w("MainActivity", "catalog load failed", e);
+            }
+        }, "catalog-loader").start();
 
         // Load the map file off the main thread; tile layer is inserted at index 0 when ready
         mapManager.loadMapAsync(mapManager.getDefaultMapFile(), new MapManager.LoadCallback() {
