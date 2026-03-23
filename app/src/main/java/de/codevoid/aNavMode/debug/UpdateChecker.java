@@ -64,8 +64,9 @@ public class UpdateChecker {
                 conn.setConnectTimeout(10_000);
                 conn.setReadTimeout(10_000);
 
-                if (conn.getResponseCode() != 200) {
-                    MAIN.post(() -> callback.onResult(null, "HTTP " + conn.getResponseCode()));
+                int status = conn.getResponseCode();
+                if (status != 200) {
+                    MAIN.post(() -> callback.onResult(null, "HTTP " + status));
                     return;
                 }
 
