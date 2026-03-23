@@ -8,3 +8,4 @@ app/build/
 *.poi
 brouter-*/
 mapdata/
+config.toml
