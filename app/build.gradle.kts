@@ -13,6 +13,8 @@ android {
         versionCode = 1
         versionName = "1.0"
         buildConfigField("long", "BUILD_TIME", "${System.currentTimeMillis()}L")
+        buildConfigField("String", "MIRROR_USER", "\"${project.findProperty("MAPMIRROR_USER") ?: ""}\"")
+        buildConfigField("String", "MIRROR_KEY",  "\"${project.findProperty("MAPMIRROR_KEY")  ?: ""}\"")
     }
 
     buildFeatures {

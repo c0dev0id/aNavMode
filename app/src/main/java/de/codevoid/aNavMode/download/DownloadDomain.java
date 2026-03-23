@@ -53,6 +53,16 @@ public class DownloadDomain {
 
     public static final String MIRROR_BASE = "https://u565435-sub2.your-storagebox.de";
 
+    private static final String MIRROR_AUTH = buildAuth();
+
+    private static String buildAuth() {
+        String user = de.codevoid.aNavMode.BuildConfig.MIRROR_USER;
+        String key  = de.codevoid.aNavMode.BuildConfig.MIRROR_KEY;
+        if (user.isEmpty() || key.isEmpty()) return null;
+        return "Basic " + java.util.Base64.getEncoder()
+                .encodeToString((user + ":" + key).getBytes());
+    }
+
     private static final String TAG            = "DownloadDomain";
     private static final String PREFS_NAME     = "download";
     private static final String PREF_MOBILE    = "allow_mobile_data";
@@ -266,7 +276,7 @@ public class DownloadDomain {
 
         // Refresh catalog before starting
         try {
-            catalog = catalogHelper.refresh(MIRROR_BASE);
+            catalog = catalogHelper.refresh(MIRROR_BASE, MIRROR_AUTH);
         } catch (Exception e) {
             Log.w(TAG, "catalog refresh failed, using cached: " + e.getMessage());
         }
@@ -427,6 +437,7 @@ public class DownloadDomain {
         HttpURLConnection conn = (HttpURLConnection) new URL(urlStr).openConnection();
         conn.setConnectTimeout(CONNECT_MS);
         conn.setReadTimeout(READ_MS);
+        if (MIRROR_AUTH != null) conn.setRequestProperty("Authorization", MIRROR_AUTH);
         return conn;
     }
 

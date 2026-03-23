@@ -131,12 +131,12 @@ public class DownloadCatalog {
      * Downloads a fresh index.json from mirrorBaseUrl, validates it,
      * and atomically replaces the on-disk catalog.
      */
-    public Catalog refresh(String mirrorBaseUrl) throws IOException, JSONException {
+    public Catalog refresh(String mirrorBaseUrl, String authHeader) throws IOException, JSONException {
         String url = mirrorBaseUrl.endsWith("/")
                 ? mirrorBaseUrl + ASSET_NAME
                 : mirrorBaseUrl + "/" + ASSET_NAME;
 
-        download(url, catalogTmp);
+        download(url, authHeader, catalogTmp);
 
         // Validate before committing
         String json = readFile(catalogTmp);
@@ -163,10 +163,11 @@ public class DownloadCatalog {
         }
     }
 
-    private void download(String urlStr, File dest) throws IOException {
+    private void download(String urlStr, String authHeader, File dest) throws IOException {
         HttpURLConnection conn = (HttpURLConnection) new URL(urlStr).openConnection();
         conn.setConnectTimeout(CONNECT_MS);
         conn.setReadTimeout(READ_MS);
+        if (authHeader != null) conn.setRequestProperty("Authorization", authHeader);
         conn.connect();
         int status = conn.getResponseCode();
         if (status != HttpURLConnection.HTTP_OK) {
