@@ -21,16 +21,14 @@ import de.codevoid.aNavMode.map.MapManager;
 
 public class BenchmarkRunner implements Choreographer.FrameCallback {
 
-    private static final long  SETTLE_MS       = 2500;
-    private static final long  RUN_MS          = 5000;
-    private static final float PAN_RADIUS_PX   = 150f;
-    private static final float PAN_PERIOD_MS   = 8000f;
+    private static final long  SETTLE_MS         = 2500;
+    private static final long  RUN_MS            = 5000;
+    private static final float PAN_RADIUS_PX     = 150f;
+    private static final float PAN_PERIOD_MS     = 8000f;
     private static final long  JANK_THRESHOLD_NS = 20_000_000L; // 20 ms
 
     public interface Listener {
-        /** Called on the main thread before each run starts. */
         void onProgress(int current, int total, BenchmarkConfig config);
-        /** Called on the main thread when all runs (or a graceful stop) finish. */
         void onComplete(List<BenchmarkResult> results);
     }
 
@@ -42,13 +40,11 @@ public class BenchmarkRunner implements Choreographer.FrameCallback {
 
     private List<BenchmarkConfig> configs;
     private List<BenchmarkResult> results;
-    private int     configIndex;
+    private int      configIndex;
     private Listener listener;
 
-    // Position captured when benchmark starts; all runs begin here.
     private LatLong startPosition;
 
-    // Settings before the benchmark, restored on completion.
     private int   savedThreads;
     private float savedCacheCapacity;
     private float savedOverdraw;
@@ -60,8 +56,12 @@ public class BenchmarkRunner implements Choreographer.FrameCallback {
     // Per-run frame metrics.
     private long  frameCount;
     private long  prevFrameNs;
-    private long  maxFrameNs;  // slowest frame = drives minFps
+    private long  maxFrameNs;
     private int   jankFrames;
+
+    // FPS cap gate.
+    private long targetFrameIntervalNs;
+    private long lastPanNs;
 
     public BenchmarkRunner(MapView mapView, MapManager mapManager) {
         this.mapView    = mapView;
@@ -72,21 +72,15 @@ public class BenchmarkRunner implements Choreographer.FrameCallback {
     // Public API
     // -------------------------------------------------------------------------
 
-    public boolean isRunning() {
-        return state != State.IDLE;
-    }
+    public boolean isRunning() { return state != State.IDLE; }
 
-    /** Returns the position used as the centre of all benchmark runs. */
-    public LatLong getStartPosition() {
-        return startPosition;
-    }
+    public LatLong getStartPosition() { return startPosition; }
 
-    /** Start the full benchmark from the current map position. */
-    public void start(Listener listener) {
+    public void start(List<BenchmarkConfig> matrix, Listener listener) {
         if (state != State.IDLE) return;
 
         this.listener    = listener;
-        this.configs     = buildMatrix();
+        this.configs     = matrix;
         this.results     = new ArrayList<>();
         this.configIndex = 0;
 
@@ -100,13 +94,8 @@ public class BenchmarkRunner implements Choreographer.FrameCallback {
         runNext();
     }
 
-    /** Request a graceful stop after the current run completes. */
     public void stop() {
         if (state != State.IDLE) state = State.STOPPING;
-    }
-
-    public int totalRuns() {
-        return configs != null ? configs.size() : countMatrix();
     }
 
     // -------------------------------------------------------------------------
@@ -122,16 +111,12 @@ public class BenchmarkRunner implements Choreographer.FrameCallback {
         BenchmarkConfig config = configs.get(configIndex);
         listener.onProgress(configIndex + 1, configs.size(), config);
 
-        // Snap to start position + zoom before reloading tiles.
         mapView.getModel().mapViewPosition.setCenter(startPosition);
         mapView.getModel().mapViewPosition.setZoomLevel(config.zoomLevel);
 
         state = State.LOADING;
         mapManager.reconfigure(
-                config.threads,
-                config.cacheCapacity,
-                config.overdrawFactor,
-                config.tileSize,
+                config.threads, config.cacheCapacity, config.overdrawFactor, config.tileSize,
                 new MapManager.LoadCallback() {
                     @Override public void onLoaded() { mainHandler.post(() -> beginSettling()); }
                     @Override public void onError(String r) { mainHandler.post(() -> beginSettling()); }
@@ -160,11 +145,20 @@ public class BenchmarkRunner implements Choreographer.FrameCallback {
             case RUNNING: {
                 long elapsedMs = (frameTimeNanos - stateStartNs) / 1_000_000L;
 
-                // Drive circular pan around the fixed start point.
+                // FPS cap: skip model updates that arrive too early.
+                if (targetFrameIntervalNs > 0 && lastPanNs != 0
+                        && (frameTimeNanos - lastPanNs) < targetFrameIntervalNs) {
+                    if (elapsedMs < RUN_MS) Choreographer.getInstance().postFrameCallback(this);
+                    else recordResult();
+                    return;
+                }
+
+                // Drive circular pan.
                 double angle   = 2 * Math.PI * elapsedMs / PAN_PERIOD_MS;
                 float  offsetX = (float) (PAN_RADIUS_PX * Math.cos(angle));
                 float  offsetY = (float) (PAN_RADIUS_PX * Math.sin(angle));
                 applyPanOffset(offsetX, offsetY);
+                lastPanNs = frameTimeNanos;
 
                 // Record inter-frame gap.
                 if (prevFrameNs != 0) {
@@ -188,12 +182,16 @@ public class BenchmarkRunner implements Choreographer.FrameCallback {
     }
 
     private void beginRunning(long frameTimeNanos) {
+        BenchmarkConfig config = configs.get(configIndex);
+        targetFrameIntervalNs = config.targetFps > 0 ? 1_000_000_000L / config.targetFps : 0L;
+
         state        = State.RUNNING;
         stateStartNs = frameTimeNanos;
         frameCount   = 0;
         prevFrameNs  = 0;
         maxFrameNs   = 0;
         jankFrames   = 0;
+        lastPanNs    = 0;
         Choreographer.getInstance().postFrameCallback(this);
     }
 
@@ -221,7 +219,6 @@ public class BenchmarkRunner implements Choreographer.FrameCallback {
 
     private void finish() {
         state = State.IDLE;
-        // Restore the settings that were active before the benchmark.
         mapManager.reconfigure(savedThreads, savedCacheCapacity, savedOverdraw, savedTileSize,
                 new MapManager.LoadCallback() {
                     @Override public void onLoaded() {}
@@ -231,55 +228,98 @@ public class BenchmarkRunner implements Choreographer.FrameCallback {
     }
 
     // -------------------------------------------------------------------------
-    // Matrix
+    // Matrices
     // -------------------------------------------------------------------------
 
-    private static final int[]   THREADS   = {1, 2, 4};
-    private static final float[] CACHES    = {1f, 2f};
-    private static final float[] OVERDRAWS = {1.0f, 1.2f};
-    private static final int[]   TILESIZES = {256, 512};
-    private static final byte[]  ZOOMS     = {14, 17};
+    /**
+     * Round 1: full parameter sweep across all combinations.
+     * 3 threads × 2 caches × 2 overdraws × 2 tile sizes × 2 zoom levels = 48 runs
+     */
+    public static List<BenchmarkConfig> buildRound1Matrix() {
+        int[]   threads   = {1, 2, 4};
+        float[] caches    = {1f, 2f};
+        float[] overdraws = {1.0f, 1.2f};
+        int[]   tiles     = {256, 512};
+        byte[]  zooms     = {14, 17};
 
-    private static List<BenchmarkConfig> buildMatrix() {
         List<BenchmarkConfig> list = new ArrayList<>();
-        for (byte zoom : ZOOMS)
-            for (int tileSize : TILESIZES)
-                for (float overdraw : OVERDRAWS)
-                    for (float cache : CACHES)
-                        for (int threads : THREADS)
-                            list.add(new BenchmarkConfig(threads, cache, overdraw, tileSize, zoom));
+        for (byte zoom : zooms)
+            for (int tile : tiles)
+                for (float overdraw : overdraws)
+                    for (float cache : caches)
+                        for (int thread : threads)
+                            list.add(new BenchmarkConfig(thread, cache, overdraw, tile, zoom, 0));
         return list;
     }
 
-    private static int countMatrix() {
-        return THREADS.length * CACHES.length * OVERDRAWS.length * TILESIZES.length * ZOOMS.length;
+    /**
+     * Round 2: pushes parameters in the winning direction from Round 1.
+     * Drops known weak settings; adds fps cap, larger tiles, more threads, higher overdraw.
+     *
+     * Round 1 findings:
+     *   - cache=2x always won → fixed at 2x
+     *   - tileSize=512 beat 256 at zoom 17 → push to 512/768/1024
+     *   - threads=4 won at zoom 17, threads=1-2 won at zoom 14
+     *   - overdraw=1.2 beat 1.0 → probe higher values
+     *   - fps cap: test 30fps to reduce CPU pressure from redundant model updates
+     *
+     * 38 runs total.
+     */
+    public static List<BenchmarkConfig> buildRound2Matrix() {
+        List<BenchmarkConfig> list = new ArrayList<>();
+
+        // Zoom 17: push tile size and thread count; probe fps cap.
+        // threads=1/2 dropped (lost at zoom 17); tileSize=256 dropped.
+        int[]   z17threads = {4, 6, 8};
+        int[]   z17tiles   = {512, 768, 1024};
+        int[]   fpsCaps    = {0, 30};  // 0 = uncapped
+        for (int fps : fpsCaps)
+            for (int tile : z17tiles)
+                for (int thread : z17threads)
+                    list.add(new BenchmarkConfig(thread, 2f, 1.2f, tile, (byte) 17, fps));
+
+        // Zoom 14: 1-2 threads won; try larger tiles and fps cap.
+        // threads=4+ dropped (ranked 44-48 in round 1).
+        int[] z14threads = {1, 2};
+        int[] z14tiles   = {256, 512, 768};
+        for (int fps : fpsCaps)
+            for (int tile : z14tiles)
+                for (int thread : z14threads)
+                    list.add(new BenchmarkConfig(thread, 2f, 1.2f, tile, (byte) 14, fps));
+
+        // Overdraw probe: fix winning config (t=4, tile=512, cache=2x, z=17), vary overdraw.
+        float[] overdraws = {1.2f, 1.5f, 2.0f, 3.0f};
+        for (int fps : fpsCaps)
+            for (float ovrd : overdraws)
+                list.add(new BenchmarkConfig(4, 2f, ovrd, 512, (byte) 17, fps));
+
+        return list;
     }
 
     // -------------------------------------------------------------------------
     // Report
     // -------------------------------------------------------------------------
 
-    public static String generateReport(List<BenchmarkResult> results, LatLong startPos) {
+    public static String generateReport(List<BenchmarkResult> results, LatLong startPos,
+                                        String roundLabel) {
         List<BenchmarkResult> sorted = new ArrayList<>(results);
         Collections.sort(sorted, (a, b) -> Float.compare(b.avgFps, a.avgFps));
 
         StringBuilder sb = new StringBuilder();
-        sb.append("aNavMode Benchmark Report\n");
+        sb.append("aNavMode Benchmark Report — ").append(roundLabel).append("\n");
         sb.append("Date:   ").append(new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.US).format(new Date())).append("\n");
         sb.append("Device: ").append(Build.MANUFACTURER).append(" ").append(Build.MODEL).append("\n");
         sb.append(String.format(Locale.US, "Origin: %.5f, %.5f\n", startPos.latitude, startPos.longitude));
         sb.append("Run:    ").append(RUN_MS / 1000).append("s per config, ")
           .append(SETTLE_MS / 1000).append("s settle, ")
-          .append(sorted.size()).append(" / ").append(countMatrix()).append(" configs\n");
-        sb.append("\n");
+          .append(sorted.size()).append(" configs\n\n");
+
         sb.append(BenchmarkConfig.reportHeader()).append("\n");
-        for (int i = 0; i < 72; i++) sb.append('-');
+        for (int i = 0; i < 78; i++) sb.append('-');
         sb.append("\n");
 
         int rank = 1;
-        for (BenchmarkResult r : sorted) {
-            sb.append(r.reportRow(rank++)).append("\n");
-        }
+        for (BenchmarkResult r : sorted) sb.append(r.reportRow(rank++)).append("\n");
 
         if (!sorted.isEmpty()) {
             BenchmarkResult best = sorted.get(0);
@@ -289,6 +329,7 @@ public class BenchmarkRunner implements Choreographer.FrameCallback {
               .append(", overdraw=").append(bc.overdrawFactor)
               .append(", tileSize=").append(bc.tileSize)
               .append(", zoom=").append((int) bc.zoomLevel)
+              .append(", fps=").append(bc.targetFps == 0 ? "max" : bc.targetFps)
               .append(" → ").append(String.format(Locale.US, "%.1f avg FPS", best.avgFps))
               .append("\n");
         }

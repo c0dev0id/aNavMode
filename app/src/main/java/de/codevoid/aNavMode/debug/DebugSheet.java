@@ -81,42 +81,57 @@ public class DebugSheet {
         });
 
         // Benchmark
-        Button   btnRun      = panelView.findViewById(R.id.btnRunBenchmark);
-        Button   btnStop     = panelView.findViewById(R.id.btnStopBenchmark);
-        TextView tvProgress  = panelView.findViewById(R.id.tvBenchmarkProgress);
+        Button   btnRound1  = panelView.findViewById(R.id.btnRunBenchmark1);
+        Button   btnRound2  = panelView.findViewById(R.id.btnRunBenchmark2);
+        Button   btnStop    = panelView.findViewById(R.id.btnStopBenchmark);
+        TextView tvProgress = panelView.findViewById(R.id.tvBenchmarkProgress);
 
-        btnRun.setOnClickListener(v -> {
-            btnRun.setEnabled(false);
+        View.OnClickListener startBenchmark = v -> {
+            boolean isRound2 = v.getId() == R.id.btnRunBenchmark2;
+            String roundLabel = isRound2 ? "Round 2" : "Round 1";
+            List<BenchmarkConfig> matrix = isRound2
+                    ? BenchmarkRunner.buildRound2Matrix()
+                    : BenchmarkRunner.buildRound1Matrix();
+
+            btnRound1.setEnabled(false);
+            btnRound2.setEnabled(false);
             btnStop.setVisibility(View.VISIBLE);
+            btnStop.setEnabled(true);
             tvProgress.setVisibility(View.VISIBLE);
-            tvProgress.setText("Preparing…");
+            tvProgress.setText(roundLabel + ": preparing…");
 
-            benchmarkRunner.start(new BenchmarkRunner.Listener() {
+            benchmarkRunner.start(matrix, new BenchmarkRunner.Listener() {
                 @Override
                 public void onProgress(int current, int total, BenchmarkConfig config) {
-                    tvProgress.setText(current + "/" + total + "  " + config.label());
+                    tvProgress.setText(roundLabel + " " + current + "/" + total
+                            + "\n" + config.label());
                 }
 
                 @Override
                 public void onComplete(List<BenchmarkResult> results) {
-                    btnRun.setEnabled(true);
+                    btnRound1.setEnabled(true);
+                    btnRound2.setEnabled(true);
                     btnStop.setVisibility(View.GONE);
-                    tvProgress.setText("Done — " + results.size() + " runs");
-                    showReport(results, benchmarkRunner);
+                    tvProgress.setText(roundLabel + " done — " + results.size() + " runs");
+                    showReport(results, benchmarkRunner, roundLabel);
                 }
             });
-        });
+        };
+
+        btnRound1.setOnClickListener(startBenchmark);
+        btnRound2.setOnClickListener(startBenchmark);
 
         btnStop.setOnClickListener(v -> {
             benchmarkRunner.stop();
             btnStop.setEnabled(false);
-            tvProgress.setText(tvProgress.getText() + " (stopping…)");
+            tvProgress.setText(tvProgress.getText() + "\n(stopping after current run…)");
         });
     }
 
-    private void showReport(List<BenchmarkResult> results, BenchmarkRunner runner) {
+    private void showReport(List<BenchmarkResult> results, BenchmarkRunner runner,
+                            String roundLabel) {
         String report = BenchmarkRunner.generateReport(results,
-                runner.getStartPosition());
+                runner.getStartPosition(), roundLabel);
 
         TextView tv = new TextView(context);
         tv.setText(report);

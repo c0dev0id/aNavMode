@@ -71,27 +71,35 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:layout_marginBottom="8dp">
+        android:layout_marginBottom="4dp">
 
         <Button
-            android:id="@+id/btnRunBenchmark"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Run Benchmark"
-            android:layout_marginEnd="4dp" />
-
-        <Button
-            android:id="@+id/btnStopBenchmark"
+            android:id="@+id/btnRunBenchmark1"
             style="@style/Widget.MaterialComponents.Button.OutlinedButton"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Stop"
-            android:layout_marginStart="4dp"
-            android:visibility="gone" />
+            android:text="Round 1"
+            android:layout_marginEnd="4dp" />
+
+        <Button
+            android:id="@+id/btnRunBenchmark2"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Round 2"
+            android:layout_marginStart="4dp" />
 
     </LinearLayout>
+
+    <Button
+        android:id="@+id/btnStopBenchmark"
+        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Stop Benchmark"
+        android:layout_marginBottom="4dp"
+        android:visibility="gone" />
 
     <TextView
         android:id="@+id/tvBenchmarkProgress"

@@ -3,7 +3,7 @@ package de.codevoid.aNavMode.benchmark;
 public final class BenchmarkResult {
     public final BenchmarkConfig config;
     public final float avgFps;
-    public final float minFps;   // 1 / longest-frame
+    public final float minFps;   // 1 / slowest-frame
     public final int   jankFrames;  // frames > 20 ms
     public final int   totalFrames;
 
@@ -19,13 +19,14 @@ public final class BenchmarkResult {
     public String reportRow(int rank) {
         float jankPct = totalFrames > 0 ? 100f * jankFrames / totalFrames : 0f;
         BenchmarkConfig c = config;
-        return String.format("%-3d %-7d %-6s %-5.1f %-4d %-4d | %-7.1f %-7.1f %-5d %.1f%%",
+        return String.format("%-3d %-7d %-6s %-5.1f %-4d %-4d %-5s | %-7.1f %-7.1f %-5d %.1f%%",
                 rank,
                 c.threads,
                 c.cacheCapacity == 1f ? "1x" : "2x",
                 c.overdrawFactor,
                 c.tileSize,
                 (int) c.zoomLevel,
+                c.targetFps == 0 ? "max" : String.valueOf(c.targetFps),
                 avgFps,
                 minFps,
                 jankFrames,
