@@ -14,6 +14,14 @@
         android:layout_marginBottom="16dp" />
 
     <Button
+        android:id="@+id/btnMigrateMaps"
+        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Migrate Maps to Internal Storage"
+        android:layout_marginBottom="8dp" />
+
+    <Button
         android:id="@+id/btnDownloadMap"
         style="@style/Widget.MaterialComponents.Button.OutlinedButton"
         android:layout_width="match_parent"

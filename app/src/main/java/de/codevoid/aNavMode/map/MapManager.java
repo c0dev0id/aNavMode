@@ -108,14 +108,78 @@ public class MapManager {
         }, "map-loader").start();
     }
 
+    /** Returns the internal maps directory (primary location). */
+    public File getInternalMapsDir() {
+        return new File(context.getFilesDir(), "maps");
+    }
+
+    /** Returns the legacy external maps directory (used only for migration). */
+    public File getLegacyExternalMapsDir() {
+        return new File(Environment.getExternalStorageDirectory(), "aNavMode/maps");
+    }
+
     /**
-     * Scans /sdcard/aNavMode/maps/ recursively for downloaded .map files.
+     * Scans the internal maps directory for downloaded .map files.
      */
     private List<File> findRegionalMaps() {
         List<File> result = new ArrayList<>();
-        File mapsDir = new File(Environment.getExternalStorageDirectory(), "aNavMode/maps");
+        File mapsDir = getInternalMapsDir();
         if (mapsDir.isDirectory()) scanMaps(mapsDir, result);
         return result;
+    }
+
+    public interface MigrationCallback {
+        /** Called on the background thread; marshal to UI if needed. */
+        void onProgress(String filename, int done, int total);
+        void onComplete(int migrated, int skipped);
+        void onError(String reason);
+    }
+
+    /**
+     * Copies .map files from the legacy external location to internal storage.
+     * Runs on a background thread; callbacks are invoked from that thread.
+     */
+    public void migrateFromExternal(MigrationCallback cb) {
+        new Thread(() -> {
+            File src = getLegacyExternalMapsDir();
+            if (!src.isDirectory()) { cb.onComplete(0, 0); return; }
+
+            List<File> found = new ArrayList<>();
+            scanMaps(src, found);
+            if (found.isEmpty()) { cb.onComplete(0, 0); return; }
+
+            File dst = getInternalMapsDir();
+            dst.mkdirs();
+
+            int migrated = 0, skipped = 0;
+            for (int i = 0; i < found.size(); i++) {
+                File from = found.get(i);
+                // Preserve relative path under the maps dir.
+                String rel  = from.getAbsolutePath()
+                        .substring(src.getAbsolutePath().length() + 1);
+                File   to   = new File(dst, rel);
+                cb.onProgress(from.getName(), i + 1, found.size());
+                if (to.exists()) { skipped++; continue; }
+                to.getParentFile().mkdirs();
+                try {
+                    copyFile(from, to);
+                    migrated++;
+                } catch (Exception e) {
+                    cb.onError("Failed to copy " + from.getName() + ": " + e.getMessage());
+                    return;
+                }
+            }
+            cb.onComplete(migrated, skipped);
+        }, "map-migrate").start();
+    }
+
+    private static void copyFile(File from, File to) throws Exception {
+        try (java.io.InputStream  in  = new java.io.FileInputStream(from);
+             java.io.OutputStream out = new java.io.FileOutputStream(to)) {
+            byte[] buf = new byte[65536];
+            int n;
+            while ((n = in.read(buf)) != -1) out.write(buf, 0, n);
+        }
     }
 
     private void scanMaps(File dir, List<File> out) {
