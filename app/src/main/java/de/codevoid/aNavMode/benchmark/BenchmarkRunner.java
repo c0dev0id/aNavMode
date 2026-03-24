@@ -215,9 +215,11 @@ public class BenchmarkRunner implements Choreographer.FrameCallback {
 
     private void recordResult() {
         BenchmarkConfig config = configs.get(configIndex);
-        float avgFps = frameCount / (RUN_MS / 1000f);
-        float minFps = maxFrameNs > 0 ? 1_000_000_000f / maxFrameNs : 0f;
-        results.add(new BenchmarkResult(config, avgFps, minFps, jankFrames, (int) frameCount));
+        if (!config.warmup) {
+            float avgFps = frameCount / (RUN_MS / 1000f);
+            float minFps = maxFrameNs > 0 ? 1_000_000_000f / maxFrameNs : 0f;
+            results.add(new BenchmarkResult(config, avgFps, minFps, jankFrames, (int) frameCount));
+        }
         configIndex++;
         runNext();
     }
@@ -317,6 +319,31 @@ public class BenchmarkRunner implements Choreographer.FrameCallback {
             for (int tile : tiles)
                 for (boolean hw : hwFlags)
                     list.add(new BenchmarkConfig(4, 2f, 1.2f, tile, zoom, 0, hw));
+        return list;
+    }
+
+    /**
+     * Round 4: tile-size sweep with warm disk cache.
+     * Each (tileSize, zoom) pair is preceded by an identical warmup pass that fills the
+     * FileSystemTileCache; reconfigure() between warmup and measured run discards only the
+     * in-memory layer while leaving disk tiles intact, so the measured pass is pure cache hits.
+     *
+     * Base: hw=true, threads=4, overdraw=1.2, fps=max
+     * Variables: tileSize(5) × zoom(2) = 10 measured runs (+ 10 warmup passes)
+     */
+    public static List<BenchmarkConfig> buildRound4Matrix() {
+        int[]  tiles = {256, 384, 512, 768, 1024};
+        byte[] zooms = {14, 17};
+
+        List<BenchmarkConfig> list = new ArrayList<>();
+        for (byte zoom : zooms) {
+            for (int tile : tiles) {
+                // Warmup pass: fills disk cache, result discarded.
+                list.add(new BenchmarkConfig(4, 4f, 1.2f, tile, zoom, 0, true, true));
+                // Measured pass: in-memory cache empty, disk cache warm.
+                list.add(new BenchmarkConfig(4, 4f, 1.2f, tile, zoom, 0, true, false));
+            }
+        }
         return list;
     }
 

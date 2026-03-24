@@ -8,9 +8,11 @@ public final class BenchmarkConfig {
     public final byte    zoomLevel;
     public final int     targetFps;      // 0 = uncapped (full vsync rate)
     public final boolean hardwareLayer;  // true = LAYER_TYPE_HARDWARE
+    public final boolean warmup;         // true = run but discard result (cache warm-up pass)
 
     public BenchmarkConfig(int threads, float cacheCapacity, float overdrawFactor,
-                           int tileSize, byte zoomLevel, int targetFps, boolean hardwareLayer) {
+                           int tileSize, byte zoomLevel, int targetFps, boolean hardwareLayer,
+                           boolean warmup) {
         this.threads        = threads;
         this.cacheCapacity  = cacheCapacity;
         this.overdrawFactor = overdrawFactor;
@@ -18,16 +20,24 @@ public final class BenchmarkConfig {
         this.zoomLevel      = zoomLevel;
         this.targetFps      = targetFps;
         this.hardwareLayer  = hardwareLayer;
+        this.warmup         = warmup;
+    }
+
+    /** Convenience constructor for Round 1/2/3 configs (no warmup). */
+    public BenchmarkConfig(int threads, float cacheCapacity, float overdrawFactor,
+                           int tileSize, byte zoomLevel, int targetFps, boolean hardwareLayer) {
+        this(threads, cacheCapacity, overdrawFactor, tileSize, zoomLevel, targetFps, hardwareLayer, false);
     }
 
     /** Convenience constructor for Round 1/2 configs (no hardware-layer variation). */
     public BenchmarkConfig(int threads, float cacheCapacity, float overdrawFactor,
                            int tileSize, byte zoomLevel, int targetFps) {
-        this(threads, cacheCapacity, overdrawFactor, tileSize, zoomLevel, targetFps, false);
+        this(threads, cacheCapacity, overdrawFactor, tileSize, zoomLevel, targetFps, false, false);
     }
 
     public String label() {
-        return "t=" + threads
+        return (warmup ? "[warmup] " : "")
+             + "t=" + threads
              + " cache=" + (cacheCapacity == 1f ? "1x" : "2x")
              + " ovrd=" + overdrawFactor
              + " tile=" + tileSize
