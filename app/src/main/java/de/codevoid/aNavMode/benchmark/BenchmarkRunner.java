@@ -94,7 +94,12 @@ public class BenchmarkRunner implements Choreographer.FrameCallback {
         savedTileSize      = mapView.getModel().displayModel.getTileSize();
         savedLayerType     = mapView.getLayerType();
 
-        runNext();
+        // Clear disk cache before the first run so warmup passes start from a clean slate.
+        state = State.LOADING;
+        new Thread(() -> {
+            mapManager.clearDiskCacheFiles();
+            mainHandler.post(this::runNext);
+        }, "bench-cache-clear").start();
     }
 
     public void stop() {

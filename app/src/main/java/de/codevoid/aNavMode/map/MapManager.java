@@ -182,6 +182,11 @@ public class MapManager {
         );
     }
 
+    /** Deletes disk cache files only — does not tear down or reload the tile layer. */
+    public void clearDiskCacheFiles() {
+        deleteDir(new File(context.getFilesDir(), "tilecache"));
+    }
+
     public void clearTileCacheAsync(LoadCallback callback) {
         // Reset display model to defaults before reloading — benchmark may have left
         // the tile size at a different value, which would cause gaps if not corrected.
