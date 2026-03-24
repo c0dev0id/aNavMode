@@ -19,7 +19,6 @@ import de.codevoid.aNavMode.R;
 import de.codevoid.aNavMode.benchmark.BenchmarkConfig;
 import de.codevoid.aNavMode.benchmark.BenchmarkResult;
 import de.codevoid.aNavMode.benchmark.BenchmarkRunner;
-import de.codevoid.aNavMode.map.MapManager;
 
 public class DebugSheet {
 
@@ -33,43 +32,8 @@ public class DebugSheet {
     private final Context context;
 
     public DebugSheet(Context context, View panelView, Callbacks callbacks,
-                      boolean polygonsOn, BenchmarkRunner benchmarkRunner,
-                      MapManager mapManager) {
+                      boolean polygonsOn, BenchmarkRunner benchmarkRunner) {
         this.context = context;
-
-        // Migration
-        Button btnMigrate = panelView.findViewById(R.id.btnMigrateMaps);
-        java.io.File legacyDir = mapManager.getLegacyExternalDataDir();
-        if (!legacyDir.isDirectory()) {
-            btnMigrate.setEnabled(false);
-            btnMigrate.setText("Migrate Maps (no legacy dir found)");
-        }
-        btnMigrate.setOnClickListener(v -> {
-            btnMigrate.setEnabled(false);
-            btnMigrate.setText("Migrating…");
-            mapManager.migrateFromExternal(new MapManager.MigrationCallback() {
-                @Override public void onProgress(String filename, int done, int total) {
-                    new android.os.Handler(android.os.Looper.getMainLooper()).post(() ->
-                            btnMigrate.setText("Migrating " + done + "/" + total + ": " + filename));
-                }
-                @Override public void onComplete(int migrated, int skipped) {
-                    new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
-                        btnMigrate.setText("Done: " + migrated + " copied, " + skipped + " skipped");
-                        android.widget.Toast.makeText(context,
-                                "Migration complete: " + migrated + " files copied",
-                                android.widget.Toast.LENGTH_LONG).show();
-                    });
-                }
-                @Override public void onError(String reason) {
-                    new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
-                        btnMigrate.setEnabled(true);
-                        btnMigrate.setText("Migration failed");
-                        android.widget.Toast.makeText(context, reason,
-                                android.widget.Toast.LENGTH_LONG).show();
-                    });
-                }
-            });
-        });
 
         android.widget.ToggleButton btnPolygons = panelView.findViewById(R.id.btnTogglePolygons);
         btnPolygons.setChecked(polygonsOn);

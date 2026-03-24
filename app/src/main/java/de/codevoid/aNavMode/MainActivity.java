@@ -101,7 +101,7 @@ public class MainActivity extends AppCompatActivity
         fabAdd.setOnClickListener(v -> { if (routingDomain != null) routingDomain.addAtCenter(); });
 
         View debugPanel = findViewById(R.id.debugPanel);
-        new DebugSheet(this, debugPanel, this, polygonsForced, benchmarkRunner, mapManager);
+        new DebugSheet(this, debugPanel, this, polygonsForced, benchmarkRunner);
 
         FloatingActionButton fab = findViewById(R.id.fabDebug);
         fab.setOnClickListener(v ->
