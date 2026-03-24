@@ -1,7 +1,6 @@
 package de.codevoid.aNavMode.map;
 
 import android.content.Context;
-import android.os.Environment;
 import android.view.View;
 
 import org.mapsforge.core.model.LatLong;
@@ -30,7 +29,7 @@ public class MapManager {
     private TileRendererLayer tileLayer;
     private TileCache         tileCache;
 
-    private float configCacheCapacity = 2f;
+    private float configCacheCapacity = 4f;
 
     public MapManager(Context context, MapView mapView) {
         this.context = context;
@@ -54,7 +53,7 @@ public class MapManager {
      * Loads (or reloads) the tile layer.
      *
      * Always includes the bundled world.map as the base layer, then overlays
-     * any regional .map files found under /sdcard/aNavMode/maps/ so that
+     * any regional .map files found under getFilesDir()/maps/ so that
      * downloaded regions show detail while blank areas fall back to the world map.
      *
      * Safe to call again after new maps are downloaded — tears down the old
@@ -90,7 +89,8 @@ public class MapManager {
                         context, "maincache",
                         mapView.getModel().displayModel.getTileSize(),
                         configCacheCapacity,
-                        mapView.getModel().frameBufferModel.getOverdrawFactor());
+                        mapView.getModel().frameBufferModel.getOverdrawFactor(),
+                        true /* persistent: survive process restarts */);
 
                 TileRendererLayer layer = new TileRendererLayer(
                         cache, multi,
@@ -108,85 +108,11 @@ public class MapManager {
         }, "map-loader").start();
     }
 
-    /** Returns the internal maps directory (primary location). */
-    public File getInternalMapsDir() {
-        return new File(context.getFilesDir(), "maps");
-    }
-
-    /** Returns the legacy external data root (used only for migration). */
-    public File getLegacyExternalDataDir() {
-        return new File(Environment.getExternalStorageDirectory(), "aNavMode");
-    }
-
-    /**
-     * Scans the internal maps directory for downloaded .map files.
-     */
     private List<File> findRegionalMaps() {
         List<File> result = new ArrayList<>();
-        File mapsDir = getInternalMapsDir();
+        File mapsDir = new File(context.getFilesDir(), "maps");
         if (mapsDir.isDirectory()) scanMaps(mapsDir, result);
         return result;
-    }
-
-    public interface MigrationCallback {
-        /** Called on the background thread; marshal to UI if needed. */
-        void onProgress(String filename, int done, int total);
-        void onComplete(int migrated, int skipped);
-        void onError(String reason);
-    }
-
-    /**
-     * Copies .map files from the legacy external location to internal storage.
-     * Runs on a background thread; callbacks are invoked from that thread.
-     */
-    public void migrateFromExternal(MigrationCallback cb) {
-        new Thread(() -> {
-            File src = getLegacyExternalDataDir();
-            if (!src.isDirectory()) { cb.onComplete(0, 0); return; }
-
-            List<File> found = new ArrayList<>();
-            collectFiles(src, found);
-            if (found.isEmpty()) { cb.onComplete(0, 0); return; }
-
-            File dst = context.getFilesDir();
-
-            int migrated = 0, skipped = 0;
-            for (int i = 0; i < found.size(); i++) {
-                File from = found.get(i);
-                String rel = from.getAbsolutePath()
-                        .substring(src.getAbsolutePath().length() + 1);
-                File to = new File(dst, rel);
-                cb.onProgress(from.getName(), i + 1, found.size());
-                if (to.exists()) { skipped++; continue; }
-                to.getParentFile().mkdirs();
-                try {
-                    copyFile(from, to);
-                    migrated++;
-                } catch (Exception e) {
-                    cb.onError("Failed to copy " + from.getName() + ": " + e.getMessage());
-                    return;
-                }
-            }
-            cb.onComplete(migrated, skipped);
-        }, "map-migrate").start();
-    }
-
-    private static void collectFiles(File dir, List<File> out) {
-        File[] entries = dir.listFiles();
-        if (entries == null) return;
-        for (File f : entries) {
-            if (f.isDirectory()) collectFiles(f, out);
-            else out.add(f);
-        }
-    }
-
-    private static void copyFile(File from, File to) throws Exception {
-        try (java.io.InputStream  in  = new java.io.FileInputStream(from);
-             java.io.OutputStream out = new java.io.FileOutputStream(to)) {
-            byte[] buf = new byte[65536];
-            int n;
-            while ((n = in.read(buf)) != -1) out.write(buf, 0, n);
-        }
     }
 
     private void scanMaps(File dir, List<File> out) {
