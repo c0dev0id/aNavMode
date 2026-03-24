@@ -21,6 +21,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import org.mapsforge.map.android.graphics.AndroidGraphicFactory;
 import org.mapsforge.map.android.view.MapView;
+import org.mapsforge.core.util.Parameters;
 
 import de.codevoid.aNavMode.debug.DebugSheet;
 import de.codevoid.aNavMode.download.DownloadCatalog;
@@ -81,6 +82,7 @@ public class MainActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         AndroidGraphicFactory.createInstance(getApplication());
+        Parameters.FRACTIONAL_ZOOM = true;
         setContentView(R.layout.activity_main);
 
         mapView      = findViewById(R.id.mapView);
