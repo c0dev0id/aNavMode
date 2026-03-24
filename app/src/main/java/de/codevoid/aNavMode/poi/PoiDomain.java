@@ -4,10 +4,10 @@ import android.content.Context;
 import android.util.Log;
 
 import org.mapsforge.core.model.BoundingBox;
-import org.mapsforge.poi.android.storage.AndroidPoiPersistenceManager;
+import org.mapsforge.core.model.Tag;
+import org.mapsforge.poi.android.storage.AndroidPoiPersistenceManagerFactory;
 import org.mapsforge.poi.storage.PointOfInterest;
 import org.mapsforge.poi.storage.PoiCategory;
-import org.mapsforge.poi.storage.PoiCategoryFilter;
 import org.mapsforge.poi.storage.PoiPersistenceManager;
 
 import java.io.File;
@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -23,12 +24,11 @@ import java.util.concurrent.Executors;
  * Owns all POI database connections and serves viewport queries.
  *
  * On construction, scans {filesDir}/pois/ recursively for .poi files and opens
- * each as an AndroidPoiPersistenceManager. Queries are serialised on a single
- * background thread (same pattern as RoutingDomain) and results published as
- * immutable State snapshots to registered listeners.
+ * each via AndroidPoiPersistenceManagerFactory. Queries are serialised on a single
+ * background thread and results published as immutable State snapshots to listeners.
  *
  * Category names must match the titles stored in the POI database.
- * If queries return empty results, verify via pm.getCategoryManager().getRootCategory().
+ * If queries return empty results, verify category titles via pm.getCategoryManager().
  */
 public class PoiDomain {
 
@@ -41,9 +41,9 @@ public class PoiDomain {
     private static final String CAT_CAFE       = "Cafe";
     private static final String CAT_FAST_FOOD  = "Fast Food";
 
-    private static final int    QUERY_LIMIT         = 500;
-    // Re-query when viewport centre moves more than this fraction of bbox width.
-    private static final double REQUERY_THRESHOLD   = 0.25;
+    private static final int    QUERY_LIMIT       = 500;
+    // Re-query when viewport centre moves more than this fraction of the bbox width.
+    private static final double REQUERY_THRESHOLD = 0.25;
 
     // -------------------------------------------------------------------------
     // Public data model
@@ -56,12 +56,15 @@ public class PoiDomain {
         public final double   longitude;
         public final String   name;
         public final Category category;
+        /** Phone number from OSM tags; null if not present in POI data. */
+        public final String   phone;
 
-        Poi(double lat, double lon, String name, Category category) {
+        Poi(double lat, double lon, String name, Category category, String phone) {
             this.latitude  = lat;
             this.longitude = lon;
             this.name      = name != null ? name : "";
             this.category  = category;
+            this.phone     = phone;
         }
     }
 
@@ -122,18 +125,21 @@ public class PoiDomain {
             if (isSimilarEnough(bbox, lastBbox)) return;
             lastBbox = bbox;
 
-            PoiCategoryFilter filter = category -> isWantedCategory(category);
             List<Poi> results = new ArrayList<>();
 
             for (PoiPersistenceManager pm : managers) {
                 try {
+                    // null filter = accept all categories; we filter by category title in Java.
+                    // findCategories=true so getCategory() is populated.
                     Collection<PointOfInterest> found =
-                            pm.findInRect(bbox, filter, null, QUERY_LIMIT);
+                            pm.findInRect(bbox, null, null, null, QUERY_LIMIT, true);
                     for (PointOfInterest p : found) {
-                        Category cat = toCategory(p.category);
-                        if (cat != null) {
-                            results.add(new Poi(p.latitude, p.longitude, p.name, cat));
-                        }
+                        Category cat = toCategory(p.getCategory());
+                        if (cat == null) continue;
+                        results.add(new Poi(
+                                p.getLatitude(), p.getLongitude(),
+                                p.getName(), cat,
+                                extractPhone(p.getTags())));
                     }
                 } catch (Exception e) {
                     Log.w(TAG, "query failed: " + e.getMessage());
@@ -180,7 +186,8 @@ public class PoiDomain {
                 scanDir(f);
             } else if (f.getName().endsWith(".poi")) {
                 try {
-                    managers.add(new AndroidPoiPersistenceManager(f, true, null, null));
+                    managers.add(AndroidPoiPersistenceManagerFactory
+                            .getPoiPersistenceManager(f.getAbsolutePath()));
                     Log.d(TAG, "opened: " + f.getName());
                 } catch (Exception e) {
                     Log.w(TAG, "failed to open " + f.getName() + ": " + e.getMessage());
@@ -200,24 +207,30 @@ public class PoiDomain {
     // Category matching
     // -------------------------------------------------------------------------
 
-    private static boolean isWantedCategory(PoiCategory cat) {
-        if (cat == null) return false;
-        String t = cat.getTitle();
-        if (CAT_FUEL.equals(t) || CAT_PARKING.equals(t) ||
-                CAT_RESTAURANT.equals(t) || CAT_CAFE.equals(t) || CAT_FAST_FOOD.equals(t)) {
-            return true;
-        }
-        return isWantedCategory(cat.getParent());
-    }
-
     private static Category toCategory(PoiCategory cat) {
         if (cat == null) return null;
         String t = cat.getTitle();
-        if (CAT_FUEL.equals(t))                                              return Category.FUEL;
-        if (CAT_PARKING.equals(t))                                           return Category.PARKING;
-        if (CAT_RESTAURANT.equals(t) || CAT_CAFE.equals(t) ||
-                CAT_FAST_FOOD.equals(t))                                     return Category.FOOD;
+        if (CAT_FUEL.equals(t))                                          return Category.FUEL;
+        if (CAT_PARKING.equals(t))                                       return Category.PARKING;
+        if (CAT_RESTAURANT.equals(t) || CAT_CAFE.equals(t)
+                || CAT_FAST_FOOD.equals(t))                              return Category.FOOD;
         return toCategory(cat.getParent());
+    }
+
+    // -------------------------------------------------------------------------
+    // Tag helpers
+    // -------------------------------------------------------------------------
+
+    private static String extractPhone(Set<Tag> tags) {
+        if (tags == null) return null;
+        String phone = null;
+        for (Tag tag : tags) {
+            if ("phone".equals(tag.key) || "contact:phone".equals(tag.key)) {
+                phone = tag.value;
+                if ("phone".equals(tag.key)) break; // prefer plain "phone"
+            }
+        }
+        return phone;
     }
 
     // -------------------------------------------------------------------------
