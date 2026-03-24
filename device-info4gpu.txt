@@ -1,0 +1,624 @@
+========================================
+aNavMode Device Hardware Report
+Device: T865
+Date:   2026-03-24 17:01
+========================================
+
+--- CPU: /proc/cpuinfo ---
+processor	: 0
+BogoMIPS	: 26.00
+Features	: fp asimd evtstrm aes pmull sha1 sha2 crc32 atomics fphp asimdhp cpuid asimdrdm lrcpc dcpop asimddp
+CPU implementer	: 0x41
+CPU architecture: 8
+CPU variant	: 0x1
+CPU part	: 0xd05
+CPU revision	: 0
+
+processor	: 1
+BogoMIPS	: 26.00
+Features	: fp asimd evtstrm aes pmull sha1 sha2 crc32 atomics fphp asimdhp cpuid asimdrdm lrcpc dcpop asimddp
+CPU implementer	: 0x41
+CPU architecture: 8
+CPU variant	: 0x1
+CPU part	: 0xd05
+CPU revision	: 0
+
+processor	: 2
+BogoMIPS	: 26.00
+Features	: fp asimd evtstrm aes pmull sha1 sha2 crc32 atomics fphp asimdhp cpuid asimdrdm lrcpc dcpop asimddp
+CPU implementer	: 0x41
+CPU architecture: 8
+CPU variant	: 0x1
+CPU part	: 0xd05
+CPU revision	: 0
+
+processor	: 3
+BogoMIPS	: 26.00
+Features	: fp asimd evtstrm aes pmull sha1 sha2 crc32 atomics fphp asimdhp cpuid asimdrdm lrcpc dcpop asimddp
+CPU implementer	: 0x41
+CPU architecture: 8
+CPU variant	: 0x1
+CPU part	: 0xd05
+CPU revision	: 0
+
+processor	: 4
+BogoMIPS	: 26.00
+Features	: fp asimd evtstrm aes pmull sha1 sha2 crc32 atomics fphp asimdhp cpuid asimdrdm lrcpc dcpop asimddp
+CPU implementer	: 0x41
+CPU architecture: 8
+CPU variant	: 0x1
+CPU part	: 0xd05
+CPU revision	: 0
+
+processor	: 5
+BogoMIPS	: 26.00
+Features	: fp asimd evtstrm aes pmull sha1 sha2 crc32 atomics fphp asimdhp cpuid asimdrdm lrcpc dcpop asimddp
+CPU implementer	: 0x41
+CPU architecture: 8
+CPU variant	: 0x1
+CPU part	: 0xd05
+CPU revision	: 0
+
+processor	: 6
+BogoMIPS	: 26.00
+Features	: fp asimd evtstrm aes pmull sha1 sha2 crc32 atomics fphp asimdhp cpuid asimdrdm lrcpc dcpop asimddp
+CPU implementer	: 0x41
+CPU architecture: 8
+CPU variant	: 0x3
+CPU part	: 0xd0a
+CPU revision	: 1
+
+processor	: 7
+BogoMIPS	: 26.00
+Features	: fp asimd evtstrm aes pmull sha1 sha2 crc32 atomics fphp asimdhp cpuid asimdrdm lrcpc dcpop asimddp
+CPU implementer	: 0x41
+CPU architecture: 8
+CPU variant	: 0x3
+CPU part	: 0xd0a
+CPU revision	: 1
+
+Hardware	: MT6769
+
+--- CPU: core count and online state ---
+cpu0  online=1  max=1800000kHz  cur=1175000kHz  gov=n/a
+cpu1  online=1  max=1800000kHz  cur=850000kHz  gov=n/a
+cpu2  online=1  max=1800000kHz  cur=1375000kHz  gov=n/a
+cpu3  online=1  max=1800000kHz  cur=1175000kHz  gov=n/a
+cpu4  online=1  max=1800000kHz  cur=950000kHz  gov=n/a
+cpu5  online=1  max=1800000kHz  cur=1625000kHz  gov=n/a
+cpu6  online=1  max=2000000kHz  cur=1176000kHz  gov=n/a
+cpu7  online=1  max=2000000kHz  cur=1176000kHz  gov=n/a
+
+--- CPU: cluster layout (related_cpus) ---
+cpu0  cluster=0 1 2 3 4 5
+cpu1  cluster=0 1 2 3 4 5
+cpu2  cluster=0 1 2 3 4 5
+cpu3  cluster=0 1 2 3 4 5
+cpu4  cluster=0 1 2 3 4 5
+cpu5  cluster=0 1 2 3 4 5
+cpu6  cluster=6 7
+cpu7  cluster=6 7
+
+--- CPU: scheduler / nproc ---
+nproc=8
+
+--- Memory: /proc/meminfo ---
+MemTotal:        3895780 kB
+MemFree:          135872 kB
+MemAvailable:    1337736 kB
+Buffers:           29988 kB
+Cached:          1149152 kB
+SwapCached:        78820 kB
+Active:          1810336 kB
+Inactive:        1082228 kB
+Active(anon):    1256252 kB
+Inactive(anon):   415600 kB
+Active(file):     554084 kB
+Inactive(file):   666628 kB
+Unevictable:        5156 kB
+Mlocked:            5156 kB
+SwapTotal:       2142672 kB
+SwapFree:        1580728 kB
+Dirty:              2532 kB
+Writeback:             0 kB
+AnonPages:       1714956 kB
+Mapped:           764860 kB
+Shmem:             20348 kB
+KReclaimable:      59520 kB
+Slab:             203952 kB
+SReclaimable:      51520 kB
+SUnreclaim:       152432 kB
+KernelStack:       58576 kB
+PageTables:        96332 kB
+NFS_Unstable:          0 kB
+Bounce:                0 kB
+WritebackTmp:          0 kB
+CommitLimit:     4090560 kB
+Committed_AS:   103433668 kB
+VmallocTotal:   263061440 kB
+VmallocUsed:      102320 kB
+VmallocChunk:          0 kB
+CmaTotal:         131072 kB
+CmaFree:             308 kB
+
+--- Memory: app process (if running) ---
+Applications Memory Usage (in Kilobytes):
+Uptime: 27301225 Realtime: 27303105
+
+** MEMINFO in pid 31520 [de.codevoid.aNavMode] **
+                   Pss  Private  Private  SwapPss      Rss     Heap     Heap     Heap
+                 Total    Dirty    Clean    Dirty    Total     Size    Alloc     Free
+                ------   ------   ------   ------   ------   ------   ------   ------
+  Native Heap    82453    82432        0       33    83892    94464    85589     4141
+  Dalvik Heap    15163    14992        0       15    22036    14284     7142     7142
+ Dalvik Other     2941     2324        0        0     3960                           
+        Stack     1524     1524        0        0     1536                           
+       Ashmem       20        0        0        0      564                           
+    Other dev        8        0        8        0      472                           
+     .so mmap     6131      496      732       36    52936                           
+    .jar mmap     5818        0     1616        0    38204                           
+    .apk mmap      870        0      244        0     2672                           
+    .ttf mmap      923        0      708        0     1504                           
+    .dex mmap    14130    14120        0        0    14696                           
+    .oat mmap      158        0       16        0     1752                           
+    .art mmap     7609     6640       12       64    25264                           
+   Other mmap       83       40        0        0      988                           
+   EGL mtrack     4999     4999        0        0     4999                           
+    GL mtrack    36160    36160        0        0    36160                           
+      Unknown      824      700      112        1     1332                           
+        TOTAL   179963   164427     3448      149   292967   108748    92731    11283
+ 
+ App Summary
+                       Pss(KB)                        Rss(KB)
+                        ------                         ------
+           Java Heap:    21644                          47300
+         Native Heap:    82432                          83892
+                Code:    17956                         113020
+               Stack:     1524                           1536
+            Graphics:    41159                          41159
+       Private Other:     3160
+              System:    12088
+             Unknown:                                    6060
+ 
+           TOTAL PSS:   179963            TOTAL RSS:   292967       TOTAL SWAP PSS:      149
+ 
+ Objects
+               Views:       46         ViewRootImpl:        1
+         AppContexts:        5           Activities:        1
+              Assets:       24        AssetManagers:        0
+       Local Binders:       23        Proxy Binders:       40
+       Parcel memory:        6         Parcel count:       26
+    Death Recipients:        1             WebViews:        0
+ 
+ SQL
+         MEMORY_USED:        0
+  PAGECACHE_OVERFLOW:        0          MALLOC_SIZE:        0
+ 
+
+--- GPU: SurfaceFlinger GLES info ---
+GPU missed frame count: 5
+ ------------RE GLES------------
+GLES: ARM, Mali-G52 MC2, OpenGL ES 3.2 v1.r26p0-01eac0.455662e55e7c7fb95a4b1db7e7af49a8
+GL_EXT_debug_marker GL_ARM_rgba8 GL_ARM_mali_shader_binary GL_OES_depth24 GL_OES_depth_texture GL_OES_depth_texture_cube_map GL_OES_packed_depth_stencil GL_OES_rgb8_rgba8 GL_EXT_read_format_bgra GL_OES_compressed_paletted_texture GL_OES_compressed_ETC1_RGB8_texture GL_OES_standard_derivatives GL_OES_EGL_image GL_OES_EGL_image_external GL_OES_EGL_image_external_essl3 GL_OES_EGL_sync GL_OES_texture_npot GL_OES_vertex_half_float GL_OES_required_internalformat GL_OES_vertex_array_object GL_OES_mapbuffer GL_EXT_texture_format_BGRA8888 GL_EXT_texture_rg GL_EXT_texture_type_2_10_10_10_REV GL_OES_fbo_render_mipmap GL_OES_element_index_uint GL_EXT_shadow_samplers GL_OES_texture_compression_astc GL_KHR_texture_compression_astc_ldr GL_KHR_texture_compression_astc_hdr GL_KHR_texture_compression_astc_sliced_3d GL_EXT_texture_compression_astc_decode_mode GL_EXT_texture_compression_astc_decode_mode_rgb9e5 GL_KHR_debug GL_EXT_occlusion_query_boolean GL_EXT_disjoint_timer_query GL_EXT_blend_minmax GL_EXT_discard_framebuffer GL_OES_get_program_binary GL_OES_texture_3D GL_EXT_texture_storage GL_EXT_multisampled_render_to_texture GL_EXT_multisampled_render_to_texture2 GL_OES_surfaceless_context GL_OES_texture_stencil8 GL_EXT_shader_pixel_local_storage GL_ARM_shader_framebuffer_fetch GL_ARM_shader_framebuffer_fetch_depth_stencil GL_ARM_mali_program_binary GL_EXT_sRGB GL_EXT_sRGB_write_control GL_EXT_texture_sRGB_decode GL_EXT_texture_sRGB_R8 GL_EXT_texture_sRGB_RG8 GL_KHR_blend_equation_advanced GL_KHR_blend_equation_advanced_coherent GL_OES_texture_storage_multisample_2d_array GL_OES_shader_image_atomic GL_EXT_robustness GL_EXT_draw_buffers_indexed GL_OES_draw_buffers_indexed GL_EXT_texture_border_clamp GL_OES_texture_border_clamp GL_EXT_texture_cube_map_array GL_OES_texture_cube_map_array GL_OES_sample_variables GL_OES_sample_shading GL_OES_shader_multisample_interpolation GL_EXT_shader_io_blocks GL_OES_shader_io_blocks GL_EXT_tessellation_shader GL_OES_tessellation_shader GL_EXT_primitive_bounding_box GL_OES_primitive_bounding_box GL_EXT_geometry_shader GL_OES_geometry_shader GL_ANDROID_extension_pack_es31a GL_EXT_gpu_shader5 GL_OES_gpu_shader5 GL_EXT_texture_buffer GL_OES_texture_buffer GL_EXT_copy_image GL_OES_copy_image GL_EXT_shader_non_constant_global_initializers GL_EXT_color_buffer_half_float GL_EXT_color_buffer_float GL_EXT_YUV_target GL_OVR_multiview GL_OVR_multiview2 GL_OVR_multiview_multisampled_render_to_texture GL_KHR_robustness GL_KHR_robust_buffer_access_behavior GL_EXT_draw_elements_base_vertex GL_OES_draw_elements_base_vertex GL_EXT_protected_textures GL_EXT_buffer_storage GL_EXT_external_buffer GL_EXT_EGL_image_array GL_EXT_texture_filter_anisotropic GL_ARM_texture_unnormalized_coordinates 
+Skia's GPU Caches:  658052 bytes, 642.63 KB (130.50 KB is purgeable)
+    skia/gpu_resources/resource_74/texture_renderbuffer: size[128.00 KB] type[RenderTarget] category[Scratch] purgeable_size[128.00 KB]
+    skia/gpu_resources/resource_6/texture: size[128.00 bytes] type[Texture] category[Scratch]
+    skia/gpu_resources/resource_3: size[1.88 KB] type[Buffer Object] category[Other] purgeable_size[1.88 KB]
+    skia/gpu_resources/resource_2: size[180.00 bytes] type[Buffer Object] category[Other] purgeable_size[180.00 bytes]
+    skia/gpu_resources/resource_75: size[272.00 bytes] type[Buffer Object] category[Other] purgeable_size[272.00 bytes]
+    skia/gpu_resources/resource_76: size[192.00 bytes] type[Buffer Object] category[Other] purgeable_size[192.00 bytes]
+    skia/gpu_resources/resource_77: size[512.00 KB] type[StencilAttachment] category[Other]
+    skia/gpu_resources/resource_84/texture_renderbuffer: size[3.91 MB]
+    skia/gpu_resources/resource_86/texture_renderbuffer: size[3.91 MB]
+    skia/gpu_resources/resource_82/texture_renderbuffer: size[3.91 MB]
+Skia's GPU Protected Caches:  0 bytes, 0.00 bytes (0.00 bytes is purgeable)
+
+--- Display: refresh rate and resolution ---
+  mViewports=[DisplayViewport{type=INTERNAL, valid=true, isActive=true, displayId=0, uniqueId='local:0', physicalPort=0, orientation=0, logicalFrame=Rect(0, 0 - 1280, 800), physicalFrame=Rect(0, 0 - 1280, 800), deviceWidth=1280, deviceHeight=800}]
+      mAdvertisedDisplayWidth=0
+      mAdvertisedDisplayHeight=0
+  DisplayDeviceInfo{"Built-in Screen": uniqueId="local:0", 1280 x 800, modeId 1, renderFrameRate 60.0, defaultModeId 1, supportedModes [{id=1, width=1280, height=800, fps=60.0, alternativeRefreshRates=[], supportedHdrTypes=[]}], colorMode 0, supportedColorModes [0], hdrCapabilities HdrCapabilities{mSupportedHdrTypes=[], mMaxLuminance=500.0, mMaxAverageLuminance=500.0, mMinLuminance=0.0}, allmSupported false, gameContentTypeSupported false, density 180, 160.0 x 160.0 dpi, appVsyncOff 2400001, presDeadline 28600000, touch INTERNAL, rotation 0, type INTERNAL, address {port=0}, deviceProductInfo null, state ON, committedState ON, frameRateOverride , brightnessMinimum 0.0, brightnessMaximum 1.0, brightnessDefault 0.4, hdrSdrRatio NaN, FLAG_ALLOWED_TO_BE_DEFAULT_DISPLAY, FLAG_ROTATES_WITH_CONTENT, FLAG_SECURE, FLAG_SUPPORTS_PROTECTED_BUFFERS, FLAG_TRUSTED, installOrientation 1, displayShape DisplayShape{ spec=-2078287415 displayWidth=1280 displayHeight=800 physicalPixelDisplaySizeRatio=1.0 rotation=0 offsetX=0 offsetY=0 scale=1.0}}
+    mStaticDisplayInfo=StaticDisplayInfo{isInternal=true, density=1.125, secure=true, deviceProductInfo=null, installOrientation=1}
+      DisplayMode{id=0, width=1280, height=800, xDpi=160.0, yDpi=160.0, refreshRate=60.0, appVsyncOffsetNanos=2400001, presentationDeadlineNanos=28600000, supportedHdrTypes=[], group=0}
+    mActiveSfDisplayMode=DisplayMode{id=0, width=1280, height=800, xDpi=160.0, yDpi=160.0, refreshRate=60.0, appVsyncOffsetNanos=2400001, presentationDeadlineNanos=28600000, supportedHdrTypes=[], group=0}
+      DisplayModeRecord{mMode={id=1, width=1280, height=800, fps=60.0, alternativeRefreshRates=[], supportedHdrTypes=[]}}
+    , mAmbientLightSensor=Sensor{type: , name: , refreshRateRange: [0.0, Infinity]} , mScreenOffBrightnessSensor=Sensor{type: null, name: null, refreshRateRange: [0.0, Infinity]} , mProximitySensor=Sensor{type: null, name: null, refreshRateRange: [0.0, Infinity]} , mRefreshRateLimitations= [], mDensityMapping= null, mAutoBrightnessBrighteningLightDebounce= -1, mAutoBrightnessDarkeningLightDebounce= -1, mBrightnessLevelsLux= [0.0, 1.0, 10.0, 20.0, 40.0, 50.0, 60.0, 70.0, 80.0, 90.0, 104.0, 110.0, 124.0, 134.0, 140.0, 145.0, 150.0, 155.0, 160.0, 165.0, 170.0, 175.0, 180.0, 190.0, 195.0, 200.0, 260.0, 500.0], mBrightnessLevelsNits= [], mDdcAutoBrightnessAvailable= true, mAutoBrightnessAvailable= true
+    , mDefaultLowBlockingZoneRefreshRate= 0, mDefaultHighBlockingZoneRefreshRate= 0, mDefaultPeakRefreshRate= 61, mDefaultRefreshRate= 61, mRefreshRateZoneProfiles= {}, mDefaultRefreshRateInHbmHdr= 0, mDefaultRefreshRateInHbmSunlight= 0, mRefreshRateThrottlingMap= {}
+  mCurrentLayout=[{dispId: 0(ON), displayGroupName: , addr: {port=0}, mThermalBrightnessThrottlingMapId: null, mRefreshRateZoneId: null, mLeadDisplayId: -1, mThermalRefreshRateThrottlingMapId: null}]
+    mBaseDisplayInfo=DisplayInfo{"Built-in Screen", displayId 0, displayGroupId 0, FLAG_SECURE, FLAG_SUPPORTS_PROTECTED_BUFFERS, FLAG_TRUSTED, real 1280 x 800, largest app 1280 x 800, smallest app 1280 x 800, appVsyncOff 2400001, presDeadline 28600000, mode 160.0, defaultMode 1, modes [{id=1, width=1280, height=800, fps=60.0, alternativeRefreshRates=[], supportedHdrTypes=[]}], hdrCapabilities HdrCapabilities{mSupportedHdrTypes=[], mMaxLuminance=500.0, mMaxAverageLuminance=500.0, mMinLuminance=0.0}, userDisabledHdrTypes [], minimalPostProcessingSupported false, rotation 0, state ON, committedState ON, type INTERNAL, uniqueId "local:0", app 1280 x 800, density 180 (160.0 x 160.0) dpi, layerStack 0, colorMode 0, supportedColorModes [0], address {port=0}, deviceProductInfo null, removeMode 0, refreshRateOverride 0.0, brightnessMinimum 0.0, brightnessMaximum 1.0, brightnessDefault 0.4, installOrientation ROTATION_90, layoutLimitedRefreshRate null, hdrSdrRatio not_available, thermalRefreshRateThrottling {}, thermalBrightnessThrottlingDataId default}
+    mOverrideDisplayInfo=DisplayInfo{"Built-in Screen", displayId 0, displayGroupId 0, FLAG_SECURE, FLAG_SUPPORTS_PROTECTED_BUFFERS, FLAG_TRUSTED, real 1280 x 800, largest app 1280 x 1185, smallest app 800 x 705, appVsyncOff 2400001, presDeadline 28600000, mode 160.0, defaultMode 1, modes [{id=1, width=1280, height=800, fps=60.0, alternativeRefreshRates=[], supportedHdrTypes=[]}], hdrCapabilities HdrCapabilities{mSupportedHdrTypes=[], mMaxLuminance=500.0, mMaxAverageLuminance=500.0, mMinLuminance=0.0}, userDisabledHdrTypes [], minimalPostProcessingSupported false, rotation 0, state ON, committedState ON, type INTERNAL, uniqueId "local:0", app 1280 x 732, density 180 (160.0 x 160.0) dpi, layerStack 0, colorMode 0, supportedColorModes [0], address {port=0}, deviceProductInfo null, removeMode 0, refreshRateOverride 60.0, brightnessMinimum 0.0, brightnessMaximum 1.0, brightnessDefault 0.4, installOrientation ROTATION_90, layoutLimitedRefreshRate null, hdrSdrRatio not_available, thermalRefreshRateThrottling {}, thermalBrightnessThrottlingDataId default}
+    mLayoutLimitedRefreshRate=null
+    mThermalRefreshRateThrottling={}
+    state(-1): [{dispId: 0(ON), displayGroupName: , addr: {port=0}, mThermalBrightnessThrottlingMapId: null, mRefreshRateZoneId: null, mLeadDisplayId: -1, mThermalRefreshRateThrottlingMapId: null}]
+  mDisplayWidth=1280
+  mDisplayHeight=800
+  width*height=1280*800
+      RefreshRate=0.0
+
+--- Display: wm size and density ---
+Physical size: 1280x800
+Physical density: 180
+
+--- Frame timing: gfxinfo summary (requires 'Profile GPU rendering' in Dev Options) ---
+Applications Graphics Acceleration Info:
+Uptime: 27302046 Realtime: 27303927
+
+** Graphics info for pid 31520 [de.codevoid.aNavMode] **
+
+Stats since: 27289200609394ns
+Total frames rendered: 375
+Janky frames: 60 (16.00%)
+Janky frames (legacy): 162 (43.20%)
+50th percentile: 18ms
+90th percentile: 150ms
+95th percentile: 150ms
+99th percentile: 200ms
+Number Missed Vsync: 47
+Number High input latency: 595
+Number Slow UI thread: 58
+Number Slow bitmap uploads: 2
+Number Slow issue draw commands: 1
+Number Frame deadline missed: 60
+Number Frame deadline missed (legacy): 68
+HISTOGRAM: 5ms=0 6ms=0 7ms=0 8ms=0 9ms=0 10ms=0 11ms=0 12ms=2 13ms=30 14ms=42 15ms=26 16ms=26 17ms=24 18ms=39 19ms=51 20ms=40 21ms=18 22ms=6 23ms=6 24ms=3 25ms=2 26ms=1 27ms=1 28ms=0 29ms=0 30ms=0 31ms=0 32ms=0 34ms=0 36ms=0 38ms=0 40ms=0 42ms=0 44ms=0 46ms=0 48ms=0 53ms=0 57ms=0 61ms=0 65ms=0 69ms=0 73ms=0 77ms=0 81ms=0 85ms=0 89ms=0 93ms=1 97ms=3 101ms=1 105ms=2 109ms=0 113ms=3 117ms=0 121ms=0 125ms=0 129ms=0 133ms=0 150ms=39 200ms=9 250ms=0 300ms=0 350ms=0 400ms=0 450ms=0 500ms=0 550ms=0 600ms=0 650ms=0 700ms=0 750ms=0 800ms=0 850ms=0 900ms=0 950ms=0 1000ms=0 1050ms=0 1100ms=0 1150ms=0 1200ms=0 1250ms=0 1300ms=0 1350ms=0 1400ms=0 1450ms=0 1500ms=0 1550ms=0 1600ms=0 1650ms=0 1700ms=0 1750ms=0 1800ms=0 1850ms=0 1900ms=0 1950ms=0 2000ms=0 2050ms=0 2100ms=0 2150ms=0 2200ms=0 2250ms=0 2300ms=0 2350ms=0 2400ms=0 2450ms=0 2500ms=0 2550ms=0 2600ms=0 2650ms=0 2700ms=0 2750ms=0 2800ms=0 2850ms=0 2900ms=0 2950ms=0 3000ms=0 3050ms=0 3100ms=0 3150ms=0 3200ms=0 3250ms=0 3300ms=0 3350ms=0 3400ms=0 3450ms=0 3500ms=0 3550ms=0 3600ms=0 3650ms=0 3700ms=0 3750ms=0 3800ms=0 3850ms=0 3900ms=0 3950ms=0 4000ms=0 4050ms=0 4100ms=0 4150ms=0 4200ms=0 4250ms=0 4300ms=0 4350ms=0 4400ms=0 4450ms=0 4500ms=0 4550ms=0 4600ms=0 4650ms=0 4700ms=0 4750ms=0 4800ms=0 4850ms=0 4900ms=0 4950ms=0
+50th gpu percentile: 5ms
+90th gpu percentile: 6ms
+95th gpu percentile: 6ms
+99th gpu percentile: 8ms
+GPU HISTOGRAM: 1ms=0 2ms=0 3ms=0 4ms=99 5ms=179 6ms=89 7ms=2 8ms=4 9ms=1 10ms=1 11ms=0 12ms=0 13ms=0 14ms=0 15ms=0 16ms=0 17ms=0 18ms=0 19ms=0 20ms=0 21ms=0 22ms=0 23ms=0 24ms=0 25ms=0 4950ms=0
+
+Pipeline=Skia (OpenGL)
+Memory policy:
+  Max surface area: 2073600
+  Max resource usage: 298.60MB (x144)
+  Background retention: 50% (altUiHidden = true)
+  GPU Context timeout: 10
+Contexts: 1 (stopped = 0)
+CPU Caches:
+  Glyph Cache: 1.28 MB (1 entry)
+  Shadows: 732.00 bytes (1 entry)
+  Glyph Count: 1737 
+Total CPU memory usage:
+  1339284 bytes, 1.28 MB (0.00 bytes is purgeable)
+GPU Caches:
+  Other:
+    Other: 12.81 KB (1 entry)
+    Buffer Object: 2.05 KB (2 entries)
+  Image:
+    Texture: 3.60 MB (10 entries)
+  Scratch:
+    RenderTarget: 8.42 MB (10 entries)
+    Buffer Object: 78.00 KB (2 entries)
+    Texture: 2.00 MB (2 entries)
+Total GPU memory usage:
+  14795457 bytes, 14.11 MB (8.58 MB is purgeable)
+
+Profile data in ms:
+
+	de.codevoid.aNavMode/de.codevoid.aNavMode.MainActivity/android.view.ViewRootImpl@11a8704 (visibility=0)
+	Draw	Prepare	Process	Execute
+	5.66	3.65	7.02	3.83
+	4.72	0.25	4.89	4.82
+	6.28	3.56	6.81	3.37
+	4.66	0.18	3.71	7.59
+	5.61	3.86	7.07	3.36
+	4.55	0.19	3.94	5.15
+	5.58	3.69	7.36	3.55
+	5.61	0.22	4.78	4.94
+	6.33	3.73	7.53	3.45
+	6.32	0.49	6.77	4.04
+	5.58	4.16	7.13	3.46
+	5.10	3.83	4.53	5.41
+	6.73	0.41	6.28	4.01
+	4.59	3.09	4.31	5.52
+	6.30	0.32	5.58	4.15
+	5.40	3.20	7.13	3.69
+	4.64	0.19	5.54	4.20
+	5.78	3.51	7.24	3.37
+	4.32	0.18	4.35	5.17
+	7.07	3.90	6.57	3.51
+	5.15	0.20	4.21	4.55
+	7.04	3.88	6.90	3.44
+	4.72	0.20	4.28	4.87
+	5.78	3.63	7.62	3.35
+	4.93	0.27	4.71	7.67
+	6.58	3.73	6.82	3.35
+	4.63	0.19	3.86	4.88
+	7.16	3.99	6.74	3.51
+	5.23	0.18	5.03	4.62
+	6.06	3.76	6.70	3.61
+	4.79	0.17	4.02	4.83
+	6.23	3.56	8.20	4.89
+	4.30	0.25	4.34	4.72
+	6.38	4.12	6.89	3.26
+	4.47	0.21	3.86	4.67
+	5.75	3.73	7.99	3.27
+	4.99	0.18	5.94	3.80
+	4.70	4.28	6.42	3.65
+	4.67	3.70	4.07	5.84
+	4.76	0.23	4.62	4.74
+	5.74	3.59	7.11	3.55
+	4.66	0.27	5.32	4.91
+	4.62	3.75	5.41	4.52
+	4.37	3.75	4.47	5.59
+	4.90	0.17	3.85	4.69
+	7.16	3.14	6.64	3.25
+	3.72	0.18	3.52	9.06
+	6.58	0.55	7.30	3.76
+	4.06	3.84	4.77	4.81
+	4.30	0.22	3.77	5.29
+	5.61	3.19	7.44	3.31
+	4.16	0.28	3.64	4.97
+	5.76	3.62	4.71	5.33
+	4.67	0.17	4.93	6.69
+	5.36	3.24	7.50	3.45
+	4.71	0.22	4.31	5.11
+	5.63	3.69	7.93	4.93
+	6.52	0.32	6.62	3.65
+	5.44	3.63	7.40	3.58
+	7.71	0.33	6.27	4.58
+	50.00	2.75	5.30	5.40
+	50.00	2.28	5.78	4.86
+	50.00	1.99	5.75	5.04
+	50.00	1.91	5.15	4.76
+	50.00	2.35	4.19	4.74
+	50.00	2.51	4.46	4.97
+	50.00	2.16	4.32	4.93
+	50.00	2.57	4.37	4.67
+	50.00	6.88	8.34	4.63
+	50.00	1.74	4.80	4.29
+	50.00	1.89	4.91	4.69
+	50.00	1.75	5.35	5.11
+	50.00	1.95	4.07	4.39
+	50.00	2.02	4.79	4.58
+	50.00	1.91	5.32	4.81
+	50.00	1.97	5.02	4.48
+	50.00	2.63	4.45	4.56
+	50.00	2.40	3.76	4.85
+	50.00	2.37	4.77	5.06
+	50.00	2.46	4.39	4.64
+	50.00	2.32	5.26	4.68
+	50.00	2.23	4.93	4.69
+	50.00	2.42	4.46	4.77
+	50.00	2.38	3.36	5.25
+	50.00	2.34	4.33	4.90
+	50.00	2.35	5.39	4.65
+	50.00	2.26	3.62	4.59
+	50.00	2.10	4.06	4.69
+	50.00	1.98	3.54	4.89
+	50.00	1.89	3.65	4.57
+	50.00	1.58	3.81	4.60
+	50.00	1.64	3.99	4.37
+	50.00	2.03	3.52	4.59
+	50.00	2.04	4.06	4.23
+	50.00	1.88	3.59	4.56
+	50.00	2.02	3.51	4.57
+	50.00	1.57	4.79	4.52
+	50.00	1.84	4.04	4.27
+	50.00	1.62	4.09	4.31
+	50.00	2.02	3.52	4.78
+	50.00	1.88	4.02	4.49
+	50.00	1.67	3.42	4.44
+	50.00	1.60	3.69	4.35
+	50.00	1.63	3.27	4.54
+	50.00	1.60	3.47	4.30
+	50.00	2.04	3.68	4.60
+	50.00	1.83	4.24	4.47
+	50.00	2.34	4.29	4.48
+	50.00	1.63	5.51	4.80
+	50.00	1.70	4.19	4.58
+	50.00	1.67	5.25	4.61
+	50.00	2.23	5.00	0.00
+	50.00	2.62	3.74	4.99
+	50.00	2.35	3.80	4.82
+	50.00	2.17	3.51	4.74
+	50.00	2.45	4.08	4.69
+	50.00	2.15	3.88	4.90
+	50.00	2.19	4.64	4.67
+	50.00	2.39	5.33	4.85
+	50.00	2.33	3.37	0.00
+
+View hierarchy:
+
+  de.codevoid.aNavMode/de.codevoid.aNavMode.MainActivity/android.view.ViewRootImpl@11a8704
+  46 views, 104.67 kB of render nodes
+
+
+Total ViewRootImpl   : 1
+Total attached Views : 46
+Total RenderNode     : 104.67 kB (used) / 328.11 kB (capacity)
+
+
+--- Frame timing: gfxinfo framestats (last 120 frames, raw CSV) ---
+Applications Graphics Acceleration Info:
+Uptime: 27302276 Realtime: 27304156
+
+** Graphics info for pid 31520 [de.codevoid.aNavMode] **
+
+Stats since: 27289200609394ns
+Total frames rendered: 377
+Janky frames: 62 (16.45%)
+Janky frames (legacy): 164 (43.50%)
+50th percentile: 18ms
+90th percentile: 150ms
+95th percentile: 150ms
+99th percentile: 200ms
+Number Missed Vsync: 49
+Number High input latency: 595
+Number Slow UI thread: 60
+Number Slow bitmap uploads: 2
+Number Slow issue draw commands: 1
+Number Frame deadline missed: 62
+Number Frame deadline missed (legacy): 70
+HISTOGRAM: 5ms=0 6ms=0 7ms=0 8ms=0 9ms=0 10ms=0 11ms=0 12ms=2 13ms=30 14ms=42 15ms=26 16ms=26 17ms=24 18ms=39 19ms=51 20ms=40 21ms=18 22ms=6 23ms=6 24ms=3 25ms=2 26ms=1 27ms=1 28ms=0 29ms=0 30ms=0 31ms=0 32ms=0 34ms=0 36ms=0 38ms=0 40ms=0 42ms=0 44ms=0 46ms=0 48ms=0 53ms=0 57ms=0 61ms=0 65ms=0 69ms=0 73ms=0 77ms=0 81ms=0 85ms=0 89ms=0 93ms=1 97ms=3 101ms=1 105ms=2 109ms=0 113ms=3 117ms=0 121ms=0 125ms=0 129ms=0 133ms=0 150ms=41 200ms=9 250ms=0 300ms=0 350ms=0 400ms=0 450ms=0 500ms=0 550ms=0 600ms=0 650ms=0 700ms=0 750ms=0 800ms=0 850ms=0 900ms=0 950ms=0 1000ms=0 1050ms=0 1100ms=0 1150ms=0 1200ms=0 1250ms=0 1300ms=0 1350ms=0 1400ms=0 1450ms=0 1500ms=0 1550ms=0 1600ms=0 1650ms=0 1700ms=0 1750ms=0 1800ms=0 1850ms=0 1900ms=0 1950ms=0 2000ms=0 2050ms=0 2100ms=0 2150ms=0 2200ms=0 2250ms=0 2300ms=0 2350ms=0 2400ms=0 2450ms=0 2500ms=0 2550ms=0 2600ms=0 2650ms=0 2700ms=0 2750ms=0 2800ms=0 2850ms=0 2900ms=0 2950ms=0 3000ms=0 3050ms=0 3100ms=0 3150ms=0 3200ms=0 3250ms=0 3300ms=0 3350ms=0 3400ms=0 3450ms=0 3500ms=0 3550ms=0 3600ms=0 3650ms=0 3700ms=0 3750ms=0 3800ms=0 3850ms=0 3900ms=0 3950ms=0 4000ms=0 4050ms=0 4100ms=0 4150ms=0 4200ms=0 4250ms=0 4300ms=0 4350ms=0 4400ms=0 4450ms=0 4500ms=0 4550ms=0 4600ms=0 4650ms=0 4700ms=0 4750ms=0 4800ms=0 4850ms=0 4900ms=0 4950ms=0
+50th gpu percentile: 5ms
+90th gpu percentile: 6ms
+95th gpu percentile: 6ms
+99th gpu percentile: 8ms
+GPU HISTOGRAM: 1ms=0 2ms=0 3ms=0 4ms=99 5ms=181 6ms=89 7ms=2 8ms=4 9ms=1 10ms=1 11ms=0 12ms=0 13ms=0 14ms=0 15ms=0 16ms=0 17ms=0 18ms=0 19ms=0 20ms=0 21ms=0 22ms=0 23ms=0 24ms=0 25ms=0 4950ms=0
+
+Pipeline=Skia (OpenGL)
+Memory policy:
+  Max surface area: 2073600
+  Max resource usage: 298.60MB (x144)
+  Background retention: 50% (altUiHidden = true)
+  GPU Context timeout: 10
+Contexts: 1 (stopped = 0)
+CPU Caches:
+  Glyph Cache: 1.28 MB (1 entry)
+  Shadows: 732.00 bytes (1 entry)
+  Glyph Count: 1737 
+Total CPU memory usage:
+  1339284 bytes, 1.28 MB (0.00 bytes is purgeable)
+GPU Caches:
+  Other:
+    Other: 12.81 KB (1 entry)
+    Buffer Object: 2.05 KB (2 entries)
+  Image:
+    Texture: 3.60 MB (10 entries)
+  Scratch:
+    RenderTarget: 8.42 MB (10 entries)
+    Buffer Object: 78.00 KB (2 entries)
+    Texture: 2.00 MB (2 entries)
+Total GPU memory usage:
+  14795457 bytes, 14.11 MB (8.58 MB is purgeable)
+
+Profile data in ms:
+
+	de.codevoid.aNavMode/de.codevoid.aNavMode.MainActivity/android.view.ViewRootImpl@11a8704 (visibility=0)
+	Draw	Prepare	Process	Execute
+	50.00	1.64	3.75	4.31
+	50.00	2.42	3.08	0.00
+
+View hierarchy:
+
+  de.codevoid.aNavMode/de.codevoid.aNavMode.MainActivity/android.view.ViewRootImpl@11a8704
+  46 views, 104.67 kB of render nodes
+
+
+Total ViewRootImpl   : 1
+Total attached Views : 46
+Total RenderNode     : 104.67 kB (used) / 328.11 kB (capacity)
+
+Applications Graphics Acceleration Info:
+Uptime: 27302447 Realtime: 27304328
+
+** Graphics info for pid 31520 [de.codevoid.aNavMode] **
+
+Stats since: 27302369582703ns
+Total frames rendered: 2
+Janky frames: 2 (100.00%)
+Janky frames (legacy): 2 (100.00%)
+50th percentile: 150ms
+90th percentile: 150ms
+95th percentile: 150ms
+99th percentile: 150ms
+Number Missed Vsync: 2
+Number High input latency: 0
+Number Slow UI thread: 2
+Number Slow bitmap uploads: 0
+Number Slow issue draw commands: 0
+Number Frame deadline missed: 2
+Number Frame deadline missed (legacy): 2
+HISTOGRAM: 5ms=0 6ms=0 7ms=0 8ms=0 9ms=0 10ms=0 11ms=0 12ms=0 13ms=0 14ms=0 15ms=0 16ms=0 17ms=0 18ms=0 19ms=0 20ms=0 21ms=0 22ms=0 23ms=0 24ms=0 25ms=0 26ms=0 27ms=0 28ms=0 29ms=0 30ms=0 31ms=0 32ms=0 34ms=0 36ms=0 38ms=0 40ms=0 42ms=0 44ms=0 46ms=0 48ms=0 53ms=0 57ms=0 61ms=0 65ms=0 69ms=0 73ms=0 77ms=0 81ms=0 85ms=0 89ms=0 93ms=0 97ms=0 101ms=0 105ms=0 109ms=0 113ms=0 117ms=0 121ms=0 125ms=0 129ms=0 133ms=0 150ms=2 200ms=0 250ms=0 300ms=0 350ms=0 400ms=0 450ms=0 500ms=0 550ms=0 600ms=0 650ms=0 700ms=0 750ms=0 800ms=0 850ms=0 900ms=0 950ms=0 1000ms=0 1050ms=0 1100ms=0 1150ms=0 1200ms=0 1250ms=0 1300ms=0 1350ms=0 1400ms=0 1450ms=0 1500ms=0 1550ms=0 1600ms=0 1650ms=0 1700ms=0 1750ms=0 1800ms=0 1850ms=0 1900ms=0 1950ms=0 2000ms=0 2050ms=0 2100ms=0 2150ms=0 2200ms=0 2250ms=0 2300ms=0 2350ms=0 2400ms=0 2450ms=0 2500ms=0 2550ms=0 2600ms=0 2650ms=0 2700ms=0 2750ms=0 2800ms=0 2850ms=0 2900ms=0 2950ms=0 3000ms=0 3050ms=0 3100ms=0 3150ms=0 3200ms=0 3250ms=0 3300ms=0 3350ms=0 3400ms=0 3450ms=0 3500ms=0 3550ms=0 3600ms=0 3650ms=0 3700ms=0 3750ms=0 3800ms=0 3850ms=0 3900ms=0 3950ms=0 4000ms=0 4050ms=0 4100ms=0 4150ms=0 4200ms=0 4250ms=0 4300ms=0 4350ms=0 4400ms=0 4450ms=0 4500ms=0 4550ms=0 4600ms=0 4650ms=0 4700ms=0 4750ms=0 4800ms=0 4850ms=0 4900ms=0 4950ms=0
+50th gpu percentile: 5ms
+90th gpu percentile: 5ms
+95th gpu percentile: 5ms
+99th gpu percentile: 5ms
+GPU HISTOGRAM: 1ms=0 2ms=0 3ms=0 4ms=1 5ms=1 6ms=0 7ms=0 8ms=0 9ms=0 10ms=0 11ms=0 12ms=0 13ms=0 14ms=0 15ms=0 16ms=0 17ms=0 18ms=0 19ms=0 20ms=0 21ms=0 22ms=0 23ms=0 24ms=0 25ms=0 4950ms=0
+
+Pipeline=Skia (OpenGL)
+Memory policy:
+  Max surface area: 2073600
+  Max resource usage: 298.60MB (x144)
+  Background retention: 50% (altUiHidden = true)
+  GPU Context timeout: 10
+Contexts: 1 (stopped = 0)
+CPU Caches:
+  Glyph Cache: 1.28 MB (1 entry)
+  Shadows: 732.00 bytes (1 entry)
+  Glyph Count: 1737 
+Total CPU memory usage:
+  1339284 bytes, 1.28 MB (0.00 bytes is purgeable)
+GPU Caches:
+  Other:
+    Other: 12.81 KB (1 entry)
+    Buffer Object: 2.05 KB (2 entries)
+  Image:
+    Texture: 3.60 MB (10 entries)
+  Scratch:
+    RenderTarget: 8.42 MB (10 entries)
+    Buffer Object: 78.00 KB (2 entries)
+    Texture: 2.00 MB (2 entries)
+Total GPU memory usage:
+  14795457 bytes, 14.11 MB (8.58 MB is purgeable)
+
+Profile data in ms:
+
+	de.codevoid.aNavMode/de.codevoid.aNavMode.MainActivity/android.view.ViewRootImpl@11a8704 (visibility=0)
+	Draw	Prepare	Process	Execute
+	50.00	2.06	4.10	4.26
+	50.00	2.42	3.20	0.00
+
+Window: de.codevoid.aNavMode/de.codevoid.aNavMode.MainActivity
+Stats since: 27302369580857ns
+Total frames rendered: 2
+Janky frames: 2 (100.00%)
+Janky frames (legacy): 2 (100.00%)
+50th percentile: 150ms
+90th percentile: 150ms
+95th percentile: 150ms
+99th percentile: 150ms
+Number Missed Vsync: 2
+Number High input latency: 0
+Number Slow UI thread: 2
+Number Slow bitmap uploads: 0
+Number Slow issue draw commands: 0
+Number Frame deadline missed: 2
+Number Frame deadline missed (legacy): 2
+HISTOGRAM: 5ms=0 6ms=0 7ms=0 8ms=0 9ms=0 10ms=0 11ms=0 12ms=0 13ms=0 14ms=0 15ms=0 16ms=0 17ms=0 18ms=0 19ms=0 20ms=0 21ms=0 22ms=0 23ms=0 24ms=0 25ms=0 26ms=0 27ms=0 28ms=0 29ms=0 30ms=0 31ms=0 32ms=0 34ms=0 36ms=0 38ms=0 40ms=0 42ms=0 44ms=0 46ms=0 48ms=0 53ms=0 57ms=0 61ms=0 65ms=0 69ms=0 73ms=0 77ms=0 81ms=0 85ms=0 89ms=0 93ms=0 97ms=0 101ms=0 105ms=0 109ms=0 113ms=0 117ms=0 121ms=0 125ms=0 129ms=0 133ms=0 150ms=2 200ms=0 250ms=0 300ms=0 350ms=0 400ms=0 450ms=0 500ms=0 550ms=0 600ms=0 650ms=0 700ms=0 750ms=0 800ms=0 850ms=0 900ms=0 950ms=0 1000ms=0 1050ms=0 1100ms=0 1150ms=0 1200ms=0 1250ms=0 1300ms=0 1350ms=0 1400ms=0 1450ms=0 1500ms=0 1550ms=0 1600ms=0 1650ms=0 1700ms=0 1750ms=0 1800ms=0 1850ms=0 1900ms=0 1950ms=0 2000ms=0 2050ms=0 2100ms=0 2150ms=0 2200ms=0 2250ms=0 2300ms=0 2350ms=0 2400ms=0 2450ms=0 2500ms=0 2550ms=0 2600ms=0 2650ms=0 2700ms=0 2750ms=0 2800ms=0 2850ms=0 2900ms=0 2950ms=0 3000ms=0 3050ms=0 3100ms=0 3150ms=0 3200ms=0 3250ms=0 3300ms=0 3350ms=0 3400ms=0 3450ms=0 3500ms=0 3550ms=0 3600ms=0 3650ms=0 3700ms=0 3750ms=0 3800ms=0 3850ms=0 3900ms=0 3950ms=0 4000ms=0 4050ms=0 4100ms=0 4150ms=0 4200ms=0 4250ms=0 4300ms=0 4350ms=0 4400ms=0 4450ms=0 4500ms=0 4550ms=0 4600ms=0 4650ms=0 4700ms=0 4750ms=0 4800ms=0 4850ms=0 4900ms=0 4950ms=0
+50th gpu percentile: 5ms
+90th gpu percentile: 5ms
+95th gpu percentile: 5ms
+99th gpu percentile: 5ms
+GPU HISTOGRAM: 1ms=0 2ms=0 3ms=0 4ms=1 5ms=1 6ms=0 7ms=0 8ms=0 9ms=0 10ms=0 11ms=0 12ms=0 13ms=0 14ms=0 15ms=0 16ms=0 17ms=0 18ms=0 19ms=0 20ms=0 21ms=0 22ms=0 23ms=0 24ms=0 25ms=0 4950ms=0
+
+
+
+---PROFILEDATA---
+Flags,FrameTimelineVsyncId,IntendedVsync,Vsync,InputEventId,HandleInputStart,AnimationStart,PerformTraversalsStart,DrawStart,FrameDeadline,FrameInterval,FrameStartTime,SyncQueued,SyncStart,IssueDrawCommandsStart,SwapBuffers,FrameCompleted,DequeueBufferDuration,QueueBufferDuration,GpuCompleted,SwapBuffersCompleted,DisplayPresentTime,CommandSubmissionCompleted,
+0,4017956,27302286376491,27302369709826,0,27302373614703,27302373625395,27302374776241,27302375227011,27302389709826,27302372989164,16666667,27302452827241,27302452994626,27302455053780,27302459155318,27302463411241,57000,602462,27302463411241,27302461390626,27300751503010,27302459155318,
+0,4017972,27302386376493,27302453043161,0,27302456250395,27302456258395,27302457301472,27302457693395,27302406376493,27302456159857,16666667,27302534943857,27302535304164,27302537724241,27302540920549,27300809586933,53154,429308,27300809586933,27302542175626,27300839352857,27302540920549,
+---PROFILEDATA---
+
+
+View hierarchy:
+
+  de.codevoid.aNavMode/de.codevoid.aNavMode.MainActivity/android.view.ViewRootImpl@11a8704
+  46 views, 104.67 kB of render nodes
+
+
+Total ViewRootImpl   : 1
+Total attached Views : 46
+Total RenderNode     : 104.67 kB (used) / 328.11 kB (capacity)
+
+
+--- Build properties ---
+ro.product.model=T865
+ro.product.board=mdt865
+ro.product.cpu.abi=arm64-v8a
+ro.product.cpu.abilist=arm64-v8a,armeabi-v7a,armeabi
+ro.hardware=mt6768
+ro.hardware.chipname=
+ro.soc.model=MT6769
+ro.soc.manufacturer=Mediatek
+ro.build.version.release=14
+ro.build.version.sdk=34
+ro.build.description=sys_mdt865_ngms-user 14 mdt865_14_ngms_2.7.0 a046b376f49 dev-keys
+
+--- Thermal zones (if available) ---
+/sys/class/thermal/thermal_zone*  type=?  temp=?
+
+========================================
+End of report.
+========================================
