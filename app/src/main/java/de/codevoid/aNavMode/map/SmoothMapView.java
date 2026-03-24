@@ -6,7 +6,6 @@ import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 
 import org.mapsforge.core.model.LatLong;
-import org.mapsforge.core.model.Point;
 import org.mapsforge.core.util.MercatorProjection;
 import org.mapsforge.map.android.view.MapView;
 import org.mapsforge.map.model.MapViewPosition;
@@ -17,8 +16,9 @@ import org.mapsforge.map.model.MapViewPosition;
  * Mapsforge's built-in TouchEventHandler calls setZoomLevel() on
  * ACTION_POINTER_UP, which resets the fractional scale factor and snaps
  * the map to the nearest integer zoom level. We intercept multi-touch events
- * with our own ScaleGestureDetector, apply zoom() fractionally, and never
- * call super for scale events, preventing the snap entirely.
+ * with our own ScaleGestureDetector, apply setScaleFactorAdjustment()
+ * fractionally, and never call super for scale events, preventing the snap
+ * entirely.
  *
  * Single-touch events are passed to super unchanged so mapsforge handles
  * panning and tapping as normal.
@@ -34,17 +34,16 @@ public class SmoothMapView extends MapView {
                 new ScaleGestureDetector.SimpleOnScaleGestureListener() {
                     @Override
                     public boolean onScale(ScaleGestureDetector d) {
-                        MapViewPosition pos = getModel().mapViewPosition;
-                        pos.setPivot(screenToMapPoint(d.getFocusX(), d.getFocusY()));
-                        pos.zoom(d.getScaleFactor());
+                        MapViewPosition pos = (MapViewPosition) getModel().mapViewPosition;
+                        pos.setPivot(screenToLatLong(d.getFocusX(), d.getFocusY()));
+                        pos.setScaleFactorAdjustment(d.getScaleFactor());
                         return true;
                     }
 
                     @Override
-                    public boolean onScaleEnd(ScaleGestureDetector d) {
+                    public void onScaleEnd(ScaleGestureDetector d) {
                         // Clear pivot only — intentionally no setZoomLevel() here
                         getModel().mapViewPosition.setPivot(null);
-                        return true;
                     }
                 });
     }
@@ -88,16 +87,19 @@ public class SmoothMapView extends MapView {
 
     // -------------------------------------------------------------------------
 
-    /** Converts a screen coordinate to a mapsforge map-pixel Point. */
-    private Point screenToMapPoint(float screenX, float screenY) {
-        MapViewPosition pos = getModel().mapViewPosition;
+    /** Converts a screen coordinate to a geographic LatLong for use as zoom pivot. */
+    private LatLong screenToLatLong(float screenX, float screenY) {
+        MapViewPosition pos = (MapViewPosition) getModel().mapViewPosition;
         LatLong center = pos.getCenter();
         byte zoom = pos.getZoomLevel();
         int tileSize = getModel().displayModel.getTileSize();
         long mapSize = MercatorProjection.getMapSize(zoom, tileSize);
         double cx = MercatorProjection.longitudeToPixelX(center.longitude, mapSize);
         double cy = MercatorProjection.latitudeToPixelY(center.latitude, mapSize);
-        return new Point(cx + screenX - getWidth() / 2.0,
-                         cy + screenY - getHeight() / 2.0);
+        double px = cx + screenX - getWidth() / 2.0;
+        double py = cy + screenY - getHeight() / 2.0;
+        return new LatLong(
+                MercatorProjection.pixelYToLatitude(py, mapSize),
+                MercatorProjection.pixelXToLongitude(px, mapSize));
     }
 }
