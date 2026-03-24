@@ -141,7 +141,7 @@ public class MapManager {
      */
     public void migrateFromExternal(MigrationCallback cb) {
         new Thread(() -> {
-            File src = getLegacyExternalMapsDir();
+            File src = getLegacyExternalDataDir();
             if (!src.isDirectory()) { cb.onComplete(0, 0); return; }
 
             List<File> found = new ArrayList<>();
