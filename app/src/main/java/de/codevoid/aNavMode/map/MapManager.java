@@ -204,7 +204,11 @@ public class MapManager {
 
     private void deleteDir(File dir) {
         File[] files = dir.listFiles();
-        if (files != null) for (File f : files) f.delete();
+        if (files == null) return;
+        for (File f : files) {
+            if (f.isDirectory()) deleteDir(f);
+            f.delete();
+        }
     }
 
     public void destroy() {
