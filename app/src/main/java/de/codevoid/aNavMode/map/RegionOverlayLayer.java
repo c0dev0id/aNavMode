@@ -36,6 +36,10 @@ public class RegionOverlayLayer extends Layer {
     private static final int BORDER_R    = 255, BORDER_G    = 255, BORDER_B    = 255;
     private static final int HIGHLIGHT_R =  30, HIGHLIGHT_G = 140, HIGHLIGHT_B = 255;
 
+    // Debug: force polygons visible at any zoom in bright green.
+    private static final int DEBUG_R = 0, DEBUG_G = 255, DEBUG_B = 0;
+    private volatile boolean forceShow = false;
+
     private final int   tileSize;
     private final Paint borderPaint;
     private final Paint highlightPaint;
@@ -68,6 +72,12 @@ public class RegionOverlayLayer extends Layer {
         requestRedraw();
     }
 
+    /** Safe to call from any thread. When true, polygons are always visible in bright green. */
+    public void setForceShowPolygons(boolean force) {
+        this.forceShow = force;
+        requestRedraw();
+    }
+
     // -------------------------------------------------------------------------
     // Rendering — called from mapsforge render thread
     // -------------------------------------------------------------------------
@@ -75,23 +85,28 @@ public class RegionOverlayLayer extends Layer {
     @Override
     public void draw(BoundingBox boundingBox, byte zoomLevel, Canvas canvas, Point topLeftPoint) {
         int zoom = zoomLevel & 0xFF;
-        if (zoom < ZOOM_MIN || zoom >= ZOOM_HIDDEN) return;
 
         List<DownloadCatalog.Region> snap = regions;
         if (snap.isEmpty()) return;
 
-        // Fade in from ZOOM_MIN→ZOOM_FULL, full at ZOOM_FULL, fade out to ZOOM_HIDDEN.
         int alpha;
-        if (zoom <= ZOOM_FULL) {
-            alpha = 200 * (zoom - ZOOM_MIN) / (ZOOM_FULL - ZOOM_MIN);
+        if (forceShow) {
+            alpha = 255;
+            borderPaint.setColor(Color.argb(255, DEBUG_R, DEBUG_G, DEBUG_B));
+            highlightPaint.setColor(Color.argb(255, DEBUG_R, DEBUG_G, DEBUG_B));
         } else {
-            alpha = 200 - (zoom - ZOOM_FULL) * 200 / (ZOOM_HIDDEN - ZOOM_FULL);
+            if (zoom < ZOOM_MIN || zoom >= ZOOM_HIDDEN) return;
+            // Fade in from ZOOM_MIN→ZOOM_FULL, full at ZOOM_FULL, fade out to ZOOM_HIDDEN.
+            if (zoom <= ZOOM_FULL) {
+                alpha = 200 * (zoom - ZOOM_MIN) / (ZOOM_FULL - ZOOM_MIN);
+            } else {
+                alpha = 200 - (zoom - ZOOM_FULL) * 200 / (ZOOM_HIDDEN - ZOOM_FULL);
+            }
+            if (alpha <= 0) return;
+            borderPaint.setColor(Color.argb(alpha, BORDER_R, BORDER_G, BORDER_B));
+            highlightPaint.setColor(Color.argb(Math.min(255, alpha + 55),
+                    HIGHLIGHT_R, HIGHLIGHT_G, HIGHLIGHT_B));
         }
-        if (alpha <= 0) return;
-
-        borderPaint.setColor(Color.argb(alpha, BORDER_R, BORDER_G, BORDER_B));
-        highlightPaint.setColor(Color.argb(Math.min(255, alpha + 55),
-                HIGHLIGHT_R, HIGHLIGHT_G, HIGHLIGHT_B));
 
         long   mapSize = MercatorProjection.getMapSize((byte) zoom, tileSize);
         String curId   = currentId;

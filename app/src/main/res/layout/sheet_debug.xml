@@ -36,6 +36,14 @@
         android:text="Clear Waypoints"
         android:layout_marginBottom="8dp" />
 
+    <ToggleButton
+        android:id="@+id/btnTogglePolygons"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textOn="Polygons: ON"
+        android:textOff="Polygons: OFF"
+        android:layout_marginBottom="8dp" />
+
     <Button
         android:id="@+id/btnCheckUpdate"
         style="@style/Widget.MaterialComponents.Button.OutlinedButton"

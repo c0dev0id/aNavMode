@@ -16,13 +16,19 @@ public class DebugSheet {
         void onDownloadMap();
         void onUpdateRouteData();
         void onClearWaypoints();
+        void onTogglePolygons(boolean show);
     }
 
     private final BottomSheetDialog dialog;
 
-    public DebugSheet(Context context, Callbacks callbacks) {
+    public DebugSheet(Context context, Callbacks callbacks, boolean polygonsOn) {
         dialog = new BottomSheetDialog(context);
         View view = LayoutInflater.from(context).inflate(R.layout.sheet_debug, null);
+
+        android.widget.ToggleButton btnPolygons = view.findViewById(R.id.btnTogglePolygons);
+        btnPolygons.setChecked(polygonsOn);
+        btnPolygons.setOnCheckedChangeListener((btn, isChecked) ->
+                callbacks.onTogglePolygons(isChecked));
 
         view.findViewById(R.id.btnDownloadMap).setOnClickListener(v -> {
             dialog.dismiss();

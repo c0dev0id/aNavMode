@@ -41,6 +41,7 @@ public class MainActivity extends AppCompatActivity
 
     private MapView               mapView;
     private MapManager            mapManager;
+    private boolean               polygonsForced = false;
     private RoutingDomain         routingDomain;
     private WaypointLayer         waypointLayer;
     private RemoteControlManager  remoteControl;
@@ -91,7 +92,7 @@ public class MainActivity extends AppCompatActivity
         fabAdd.setOnClickListener(v -> { if (routingDomain != null) routingDomain.addAtCenter(); });
 
         FloatingActionButton fab = findViewById(R.id.fabDebug);
-        fab.setOnClickListener(v -> new DebugSheet(this, this).show());
+        fab.setOnClickListener(v -> new DebugSheet(this, this, polygonsForced).show());
     }
 
     private void initMap() {
@@ -284,6 +285,12 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onClearWaypoints() {
         routingDomain.clearAll();
+    }
+
+    @Override
+    public void onTogglePolygons(boolean show) {
+        polygonsForced = show;
+        if (regionOverlay != null) regionOverlay.setForceShowPolygons(show);
     }
 
     @Override
