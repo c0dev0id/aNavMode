@@ -60,4 +60,46 @@
         android:visibility="gone"
         android:layout_marginBottom="8dp" />
 
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="?attr/colorControlHighlight"
+        android:layout_marginTop="4dp"
+        android:layout_marginBottom="12dp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="8dp">
+
+        <Button
+            android:id="@+id/btnRunBenchmark"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Run Benchmark"
+            android:layout_marginEnd="4dp" />
+
+        <Button
+            android:id="@+id/btnStopBenchmark"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Stop"
+            android:layout_marginStart="4dp"
+            android:visibility="gone" />
+
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tvBenchmarkProgress"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="12sp"
+        android:fontFamily="monospace"
+        android:visibility="gone"
+        android:layout_marginBottom="4dp" />
+
 </LinearLayout>

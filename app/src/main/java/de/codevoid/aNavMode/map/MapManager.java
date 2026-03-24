@@ -5,6 +5,7 @@ import android.os.Environment;
 
 import org.mapsforge.core.model.LatLong;
 import org.mapsforge.core.model.MapPosition;
+import org.mapsforge.core.util.Parameters;
 import org.mapsforge.map.android.graphics.AndroidGraphicFactory;
 import org.mapsforge.map.android.util.AndroidUtil;
 import org.mapsforge.map.android.view.MapView;
@@ -27,6 +28,8 @@ public class MapManager {
     private final MapView mapView;
     private TileRendererLayer tileLayer;
     private TileCache         tileCache;
+
+    private float configCacheCapacity = 1f;
 
     public MapManager(Context context, MapView mapView) {
         this.context = context;
@@ -78,7 +81,7 @@ public class MapManager {
                 TileCache cache = AndroidUtil.createTileCache(
                         context, "maincache",
                         mapView.getModel().displayModel.getTileSize(),
-                        1f,
+                        configCacheCapacity,
                         mapView.getModel().frameBufferModel.getOverdrawFactor());
 
                 TileRendererLayer layer = new TileRendererLayer(
@@ -132,6 +135,23 @@ public class MapManager {
             }
         }
         return dest;
+    }
+
+    /**
+     * Applies new rendering parameters and rebuilds the tile layer.
+     * Safe to call from the main thread; the layer rebuild runs on a background thread.
+     */
+    public void reconfigure(int threads, float cacheCapacity, float overdrawFactor,
+                            int tileSize, LoadCallback callback) {
+        Parameters.NUMBER_OF_THREADS = threads;
+        configCacheCapacity = cacheCapacity;
+        mapView.getModel().displayModel.setTileSize(tileSize);
+        mapView.getModel().frameBufferModel.setOverdrawFactor(overdrawFactor);
+        loadMapAsync(callback);
+    }
+
+    public float getCacheCapacity() {
+        return configCacheCapacity;
     }
 
     public void setInitialPosition() {

@@ -23,6 +23,7 @@ import org.mapsforge.map.android.graphics.AndroidGraphicFactory;
 import org.mapsforge.map.android.view.MapView;
 import org.mapsforge.core.util.Parameters;
 
+import de.codevoid.aNavMode.benchmark.BenchmarkRunner;
 import de.codevoid.aNavMode.debug.DebugSheet;
 import de.codevoid.aNavMode.download.DownloadCatalog;
 import de.codevoid.aNavMode.download.DownloadDomain;
@@ -52,6 +53,7 @@ public class MainActivity extends AppCompatActivity
     private RegionDetector        regionDetector;
     private RegionOverlayLayer    regionOverlay;
     private DownloadCardStack     downloadCards;
+    private BenchmarkRunner       benchmarkRunner;
 
     private final Choreographer.FrameCallback frameCallback = new Choreographer.FrameCallback() {
         private long lastFrameNanos = 0;
@@ -85,8 +87,9 @@ public class MainActivity extends AppCompatActivity
         Parameters.FRACTIONAL_ZOOM = true;
         setContentView(R.layout.activity_main);
 
-        mapView      = findViewById(R.id.mapView);
-        mapManager   = new MapManager(this, mapView);
+        mapView         = findViewById(R.id.mapView);
+        mapManager      = new MapManager(this, mapView);
+        benchmarkRunner = new BenchmarkRunner(mapView, mapManager);
 
         requestStorageAndInit();
 
@@ -99,7 +102,7 @@ public class MainActivity extends AppCompatActivity
         fabAdd.setOnClickListener(v -> { if (routingDomain != null) routingDomain.addAtCenter(); });
 
         View debugPanel = findViewById(R.id.debugPanel);
-        new DebugSheet(this, debugPanel, this, polygonsForced);
+        new DebugSheet(this, debugPanel, this, polygonsForced, benchmarkRunner);
 
         FloatingActionButton fab = findViewById(R.id.fabDebug);
         fab.setOnClickListener(v ->

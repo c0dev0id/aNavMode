@@ -1,11 +1,24 @@
 package de.codevoid.aNavMode.debug;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.os.Environment;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
+
 import de.codevoid.aNavMode.R;
+import de.codevoid.aNavMode.benchmark.BenchmarkConfig;
+import de.codevoid.aNavMode.benchmark.BenchmarkResult;
+import de.codevoid.aNavMode.benchmark.BenchmarkRunner;
 
 public class DebugSheet {
 
@@ -18,7 +31,8 @@ public class DebugSheet {
 
     private final Context context;
 
-    public DebugSheet(Context context, View panelView, Callbacks callbacks, boolean polygonsOn) {
+    public DebugSheet(Context context, View panelView, Callbacks callbacks,
+                      boolean polygonsOn, BenchmarkRunner benchmarkRunner) {
         this.context = context;
 
         android.widget.ToggleButton btnPolygons = panelView.findViewById(R.id.btnTogglePolygons);
@@ -65,6 +79,78 @@ public class DebugSheet {
                 btnUpdate.setOnClickListener(dv -> startDownload(btnUpdate, tvStatus, release));
             });
         });
+
+        // Benchmark
+        Button   btnRun      = panelView.findViewById(R.id.btnRunBenchmark);
+        Button   btnStop     = panelView.findViewById(R.id.btnStopBenchmark);
+        TextView tvProgress  = panelView.findViewById(R.id.tvBenchmarkProgress);
+
+        btnRun.setOnClickListener(v -> {
+            btnRun.setEnabled(false);
+            btnStop.setVisibility(View.VISIBLE);
+            tvProgress.setVisibility(View.VISIBLE);
+            tvProgress.setText("Preparing…");
+
+            benchmarkRunner.start(new BenchmarkRunner.Listener() {
+                @Override
+                public void onProgress(int current, int total, BenchmarkConfig config) {
+                    tvProgress.setText(current + "/" + total + "  " + config.label());
+                }
+
+                @Override
+                public void onComplete(List<BenchmarkResult> results) {
+                    btnRun.setEnabled(true);
+                    btnStop.setVisibility(View.GONE);
+                    tvProgress.setText("Done — " + results.size() + " runs");
+                    showReport(results, benchmarkRunner);
+                }
+            });
+        });
+
+        btnStop.setOnClickListener(v -> {
+            benchmarkRunner.stop();
+            btnStop.setEnabled(false);
+            tvProgress.setText(tvProgress.getText() + " (stopping…)");
+        });
+    }
+
+    private void showReport(List<BenchmarkResult> results, BenchmarkRunner runner) {
+        String report = BenchmarkRunner.generateReport(results,
+                runner.getStartPosition());
+
+        TextView tv = new TextView(context);
+        tv.setText(report);
+        tv.setTextSize(11f);
+        tv.setTypeface(android.graphics.Typeface.MONOSPACE);
+        tv.setPadding(32, 16, 32, 16);
+
+        ScrollView scroll = new ScrollView(context);
+        scroll.addView(tv);
+
+        new AlertDialog.Builder(context)
+                .setTitle("Benchmark Results")
+                .setView(scroll)
+                .setPositiveButton("Save to Downloads", (d, w) -> saveReport(report))
+                .setNegativeButton("Dismiss", null)
+                .show();
+    }
+
+    private void saveReport(String report) {
+        new Thread(() -> {
+            try {
+                File dir  = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+                String ts = new SimpleDateFormat("yyyyMMdd-HHmm", Locale.US).format(new Date());
+                File   f  = new File(dir, "anavmode-bench-" + ts + ".txt");
+                try (FileWriter w = new FileWriter(f)) { w.write(report); }
+                android.os.Handler h = new android.os.Handler(android.os.Looper.getMainLooper());
+                h.post(() -> android.widget.Toast.makeText(context,
+                        "Saved: " + f.getName(), android.widget.Toast.LENGTH_LONG).show());
+            } catch (Exception e) {
+                android.os.Handler h = new android.os.Handler(android.os.Looper.getMainLooper());
+                h.post(() -> android.widget.Toast.makeText(context,
+                        "Save failed: " + e.getMessage(), android.widget.Toast.LENGTH_LONG).show());
+            }
+        }, "bench-save").start();
     }
 
     private void startDownload(Button btn, TextView tvStatus, UpdateChecker.Release release) {
