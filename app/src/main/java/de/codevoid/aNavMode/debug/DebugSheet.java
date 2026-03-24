@@ -84,31 +84,26 @@ public class DebugSheet {
         Button   btnRound1  = panelView.findViewById(R.id.btnRunBenchmark1);
         Button   btnRound2  = panelView.findViewById(R.id.btnRunBenchmark2);
         Button   btnRound3  = panelView.findViewById(R.id.btnRunBenchmark3);
-        Button   btnRound4  = panelView.findViewById(R.id.btnRunBenchmark4);
         Button   btnStop    = panelView.findViewById(R.id.btnStopBenchmark);
         TextView tvProgress = panelView.findViewById(R.id.tvBenchmarkProgress);
 
         View.OnClickListener startBenchmark = v -> {
             String roundLabel;
             List<BenchmarkConfig> matrix;
-            if (v.getId() == R.id.btnRunBenchmark4) {
-                roundLabel = "Round 4";
-                matrix     = BenchmarkRunner.buildRound4Matrix();
-            } else if (v.getId() == R.id.btnRunBenchmark3) {
-                roundLabel = "Round 3";
+            if (v.getId() == R.id.btnRunBenchmark3) {
+                roundLabel = "512px";
                 matrix     = BenchmarkRunner.buildRound3Matrix();
             } else if (v.getId() == R.id.btnRunBenchmark2) {
-                roundLabel = "Round 2";
+                roundLabel = "256px";
                 matrix     = BenchmarkRunner.buildRound2Matrix();
             } else {
-                roundLabel = "Round 1";
+                roundLabel = "128px";
                 matrix     = BenchmarkRunner.buildRound1Matrix();
             }
 
             btnRound1.setEnabled(false);
             btnRound2.setEnabled(false);
             btnRound3.setEnabled(false);
-            btnRound4.setEnabled(false);
             btnStop.setVisibility(View.VISIBLE);
             btnStop.setEnabled(true);
             tvProgress.setVisibility(View.VISIBLE);
@@ -126,7 +121,6 @@ public class DebugSheet {
                     btnRound1.setEnabled(true);
                     btnRound2.setEnabled(true);
                     btnRound3.setEnabled(true);
-                    btnRound4.setEnabled(true);
                     btnStop.setVisibility(View.GONE);
                     tvProgress.setText(roundLabel + " done — " + results.size() + " runs");
                     showReport(results, benchmarkRunner, roundLabel);
@@ -137,7 +131,6 @@ public class DebugSheet {
         btnRound1.setOnClickListener(startBenchmark);
         btnRound2.setOnClickListener(startBenchmark);
         btnRound3.setOnClickListener(startBenchmark);
-        btnRound4.setOnClickListener(startBenchmark);
 
         btnStop.setOnClickListener(v -> {
             benchmarkRunner.stop();

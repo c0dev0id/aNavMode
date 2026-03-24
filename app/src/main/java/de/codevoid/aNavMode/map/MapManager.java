@@ -43,7 +43,7 @@ public class MapManager {
 
         // Apply defaults derived from benchmark results.
         Parameters.NUMBER_OF_THREADS = 4;
-        mapView.getModel().displayModel.setFixedTileSize(256);
+        mapView.getModel().displayModel.setFixedTileSize(128);
         mapView.getModel().frameBufferModel.setOverdrawFactor(1.2);
         // Round 3: hardware layer moves tile compositing to GPU → 60fps vs ~13fps SW.
         mapView.setLayerType(View.LAYER_TYPE_HARDWARE, null);

@@ -240,109 +240,35 @@ public class BenchmarkRunner implements Choreographer.FrameCallback {
     // -------------------------------------------------------------------------
 
     /**
-     * Round 1: full parameter sweep across all combinations.
-     * 3 threads × 2 caches × 2 overdraws × 2 tile sizes × 2 zoom levels = 48 runs
+     * 128px tile size — warmup + measured at zoom 14 and 17.
+     * Start the app fresh before running so the tile size is correctly initialised.
      */
     public static List<BenchmarkConfig> buildRound1Matrix() {
-        int[]   threads   = {1, 2, 4};
-        float[] caches    = {1f, 2f};
-        float[] overdraws = {1.0f, 1.2f};
-        int[]   tiles     = {256, 512};
-        byte[]  zooms     = {14, 17};
-
-        List<BenchmarkConfig> list = new ArrayList<>();
-        for (byte zoom : zooms)
-            for (int tile : tiles)
-                for (float overdraw : overdraws)
-                    for (float cache : caches)
-                        for (int thread : threads)
-                            list.add(new BenchmarkConfig(thread, cache, overdraw, tile, zoom, 0, true));
-        return list;
+        return buildWarmCacheMatrix(128);
     }
 
     /**
-     * Round 2: pushes parameters in the winning direction from Round 1.
-     * Drops known weak settings; adds fps cap, larger tiles, more threads, higher overdraw.
-     *
-     * Round 1 findings:
-     *   - cache=2x always won → fixed at 2x
-     *   - tileSize=512 beat 256 at zoom 17 → push to 512/768/1024
-     *   - threads=4 won at zoom 17, threads=1-2 won at zoom 14
-     *   - overdraw=1.2 beat 1.0 → probe higher values
-     *   - fps cap: test 30fps to reduce CPU pressure from redundant model updates
-     *
-     * 38 runs total.
+     * 256px tile size — warmup + measured at zoom 14 and 17.
+     * Start the app fresh before running so the tile size is correctly initialised.
      */
     public static List<BenchmarkConfig> buildRound2Matrix() {
-        List<BenchmarkConfig> list = new ArrayList<>();
-
-        // Zoom 17: push tile size and thread count; probe fps cap.
-        // threads=1/2 dropped (lost at zoom 17); tileSize=256 dropped.
-        int[]   z17threads = {4, 6, 8};
-        int[]   z17tiles   = {512, 768, 1024};
-        int[]   fpsCaps    = {0, 30};  // 0 = uncapped
-        for (int fps : fpsCaps)
-            for (int tile : z17tiles)
-                for (int thread : z17threads)
-                    list.add(new BenchmarkConfig(thread, 2f, 1.2f, tile, (byte) 17, fps, true));
-
-        // Zoom 14: 1-2 threads won; try larger tiles and fps cap.
-        // threads=4+ dropped (ranked 44-48 in round 1).
-        int[] z14threads = {1, 2};
-        int[] z14tiles   = {256, 512, 768};
-        for (int fps : fpsCaps)
-            for (int tile : z14tiles)
-                for (int thread : z14threads)
-                    list.add(new BenchmarkConfig(thread, 2f, 1.2f, tile, (byte) 14, fps, true));
-
-        // Overdraw probe: fix winning config (t=4, tile=512, cache=2x, z=17), vary overdraw.
-        float[] overdraws = {1.2f, 1.5f, 2.0f, 3.0f};
-        for (int fps : fpsCaps)
-            for (float ovrd : overdraws)
-                list.add(new BenchmarkConfig(4, 2f, ovrd, 512, (byte) 17, fps, true));
-
-        return list;
+        return buildWarmCacheMatrix(256);
     }
 
     /**
-     * Round 3: hardware-layer on/off against the Round 2 winning config family.
-     * Base: threads=4, cache=2x, overdraw=1.2, fps=max
-     * Variables: hardwareLayer(2) × tileSize(3) × zoom(2) = 12 runs
+     * 512px tile size — warmup + measured at zoom 14 and 17.
+     * Start the app fresh before running so the tile size is correctly initialised.
      */
     public static List<BenchmarkConfig> buildRound3Matrix() {
-        boolean[] hwFlags = {true, false};
-        int[]     tiles   = {256, 512, 768};
-        byte[]    zooms   = {14, 17};
-
-        List<BenchmarkConfig> list = new ArrayList<>();
-        for (byte zoom : zooms)
-            for (int tile : tiles)
-                for (boolean hw : hwFlags)
-                    list.add(new BenchmarkConfig(4, 2f, 1.2f, tile, zoom, 0, hw));
-        return list;
+        return buildWarmCacheMatrix(512);
     }
 
-    /**
-     * Round 4: tile-size sweep with warm disk cache.
-     * Each (tileSize, zoom) pair is preceded by an identical warmup pass that fills the
-     * FileSystemTileCache; reconfigure() between warmup and measured run discards only the
-     * in-memory layer while leaving disk tiles intact, so the measured pass is pure cache hits.
-     *
-     * Base: hw=true, threads=4, overdraw=1.2, fps=max
-     * Variables: tileSize(5) × zoom(2) = 10 measured runs (+ 10 warmup passes)
-     */
-    public static List<BenchmarkConfig> buildRound4Matrix() {
-        int[]  tiles = {128, 256, 384, 512};
+    private static List<BenchmarkConfig> buildWarmCacheMatrix(int tileSize) {
         byte[] zooms = {14, 17};
-
         List<BenchmarkConfig> list = new ArrayList<>();
         for (byte zoom : zooms) {
-            for (int tile : tiles) {
-                // Warmup pass: fills disk cache, result discarded.
-                list.add(new BenchmarkConfig(4, 4f, 1.2f, tile, zoom, 0, true, true));
-                // Measured pass: in-memory cache empty, disk cache warm.
-                list.add(new BenchmarkConfig(4, 4f, 1.2f, tile, zoom, 0, true, false));
-            }
+            list.add(new BenchmarkConfig(4, 4f, 1.2f, tileSize, zoom, 0, true, true));  // warmup
+            list.add(new BenchmarkConfig(4, 4f, 1.2f, tileSize, zoom, 0, true, false)); // measured
         }
         return list;
     }

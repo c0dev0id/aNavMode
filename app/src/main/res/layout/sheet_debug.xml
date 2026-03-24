@@ -79,7 +79,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Round 1"
+            android:text="128px"
             android:layout_marginEnd="4dp" />
 
         <Button
@@ -87,7 +87,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Round 2"
+            android:text="256px"
             android:layout_marginStart="4dp"
             android:layout_marginEnd="4dp" />
 
@@ -96,16 +96,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Round 3"
-            android:layout_marginStart="4dp"
-            android:layout_marginEnd="4dp" />
-
-        <Button
-            android:id="@+id/btnRunBenchmark4"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Round 4"
+            android:text="512px"
             android:layout_marginStart="4dp" />
 
     </LinearLayout>
