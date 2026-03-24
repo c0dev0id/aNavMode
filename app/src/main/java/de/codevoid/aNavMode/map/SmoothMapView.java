@@ -16,9 +16,9 @@ import org.mapsforge.map.model.MapViewPosition;
  * Mapsforge's built-in TouchEventHandler calls setZoomLevel() on
  * ACTION_POINTER_UP, which resets the fractional scale factor and snaps
  * the map to the nearest integer zoom level. We intercept multi-touch events
- * with our own ScaleGestureDetector, apply setScaleFactorAdjustment()
- * fractionally, and never call super for scale events, preventing the snap
- * entirely.
+ * with our own ScaleGestureDetector, multiply the current scaleFactor by
+ * the gesture's incremental scaleFactor each frame, and never call super for
+ * scale events, preventing the snap entirely.
  *
  * Single-touch events are passed to super unchanged so mapsforge handles
  * panning and tapping as normal.
@@ -36,7 +36,7 @@ public class SmoothMapView extends MapView {
                     public boolean onScale(ScaleGestureDetector d) {
                         MapViewPosition pos = getModel().mapViewPosition;
                         pos.setPivot(screenToLatLong(d.getFocusX(), d.getFocusY()));
-                        pos.setScaleFactorAdjustment(d.getScaleFactor());
+                        pos.setScaleFactor(pos.getScaleFactor() * d.getScaleFactor());
                         return true;
                     }
 
