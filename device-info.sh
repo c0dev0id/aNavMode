@@ -82,8 +82,15 @@ echo "--- Display: wm size and density ---"
 
 # ---- Frame timing --------------------------------------------------------- #
 echo ""
-echo "--- Frame timing: gfxinfo (if app is running) ---"
+echo "--- Frame timing: gfxinfo summary (requires 'Profile GPU rendering' in Dev Options) ---"
 "$ADB" shell dumpsys gfxinfo "$PKG" 2>/dev/null | tr -d '\r' || echo "(app not running)"
+
+echo ""
+echo "--- Frame timing: gfxinfo framestats (last 120 frames, raw CSV) ---"
+# Reset counters first so we get fresh data, then collect immediately.
+# For best results run this script while the map is actively panning.
+"$ADB" shell dumpsys gfxinfo "$PKG" reset 2>/dev/null | tr -d '\r'
+"$ADB" shell dumpsys gfxinfo "$PKG" framestats 2>/dev/null | tr -d '\r' || echo "(app not running)"
 
 # ---- Android / SoC metadata ----------------------------------------------- #
 echo ""
