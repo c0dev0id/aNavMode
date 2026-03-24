@@ -34,7 +34,8 @@ public class MapManager {
     // In-memory tile count: ratio × visible tiles, used by benchmark sweeps.
     private float configCacheCapacity = 4f;
     // Disk cache: absolute tile count. 4000 tiles × ~512KB (512px RGB_565) ≈ 2GB.
-    private static final int DISK_CACHE_TILES = 4000;
+    private static final int DISK_CACHE_TILES  = 4000;
+    private static final int DEFAULT_TILE_SIZE = 128;
 
     public MapManager(Context context, MapView mapView) {
         this.context = context;
@@ -43,7 +44,7 @@ public class MapManager {
 
         // Apply defaults derived from benchmark results.
         Parameters.NUMBER_OF_THREADS = 4;
-        mapView.getModel().displayModel.setFixedTileSize(128);
+        mapView.getModel().displayModel.setFixedTileSize(DEFAULT_TILE_SIZE);
         mapView.getModel().frameBufferModel.setOverdrawFactor(1.2);
         // Round 3: hardware layer moves tile compositing to GPU → 60fps vs ~13fps SW.
         mapView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
@@ -182,6 +183,10 @@ public class MapManager {
     }
 
     public void clearTileCacheAsync(LoadCallback callback) {
+        // Reset display model to defaults before reloading — benchmark may have left
+        // the tile size at a different value, which would cause gaps if not corrected.
+        mapView.getModel().displayModel.setFixedTileSize(DEFAULT_TILE_SIZE);
+        mapView.getModel().frameBufferModel.setOverdrawFactor(1.2);
         new Thread(() -> {
             if (tileLayer != null) {
                 mapView.getLayerManager().getLayers().remove(tileLayer);
