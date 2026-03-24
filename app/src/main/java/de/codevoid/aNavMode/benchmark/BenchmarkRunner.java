@@ -256,7 +256,7 @@ public class BenchmarkRunner implements Choreographer.FrameCallback {
                 for (float overdraw : overdraws)
                     for (float cache : caches)
                         for (int thread : threads)
-                            list.add(new BenchmarkConfig(thread, cache, overdraw, tile, zoom, 0));
+                            list.add(new BenchmarkConfig(thread, cache, overdraw, tile, zoom, 0, true));
         return list;
     }
 
@@ -284,7 +284,7 @@ public class BenchmarkRunner implements Choreographer.FrameCallback {
         for (int fps : fpsCaps)
             for (int tile : z17tiles)
                 for (int thread : z17threads)
-                    list.add(new BenchmarkConfig(thread, 2f, 1.2f, tile, (byte) 17, fps));
+                    list.add(new BenchmarkConfig(thread, 2f, 1.2f, tile, (byte) 17, fps, true));
 
         // Zoom 14: 1-2 threads won; try larger tiles and fps cap.
         // threads=4+ dropped (ranked 44-48 in round 1).
@@ -293,13 +293,13 @@ public class BenchmarkRunner implements Choreographer.FrameCallback {
         for (int fps : fpsCaps)
             for (int tile : z14tiles)
                 for (int thread : z14threads)
-                    list.add(new BenchmarkConfig(thread, 2f, 1.2f, tile, (byte) 14, fps));
+                    list.add(new BenchmarkConfig(thread, 2f, 1.2f, tile, (byte) 14, fps, true));
 
         // Overdraw probe: fix winning config (t=4, tile=512, cache=2x, z=17), vary overdraw.
         float[] overdraws = {1.2f, 1.5f, 2.0f, 3.0f};
         for (int fps : fpsCaps)
             for (float ovrd : overdraws)
-                list.add(new BenchmarkConfig(4, 2f, ovrd, 512, (byte) 17, fps));
+                list.add(new BenchmarkConfig(4, 2f, ovrd, 512, (byte) 17, fps, true));
 
         return list;
     }
