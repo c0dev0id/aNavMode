@@ -332,7 +332,7 @@ public class BenchmarkRunner implements Choreographer.FrameCallback {
      * Variables: tileSize(5) × zoom(2) = 10 measured runs (+ 10 warmup passes)
      */
     public static List<BenchmarkConfig> buildRound4Matrix() {
-        int[]  tiles = {256, 384, 512, 768, 1024};
+        int[]  tiles = {128, 256, 384, 512, 768, 1024};
         byte[] zooms = {14, 17};
 
         List<BenchmarkConfig> list = new ArrayList<>();
