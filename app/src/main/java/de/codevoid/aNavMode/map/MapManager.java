@@ -181,6 +181,27 @@ public class MapManager {
         );
     }
 
+    public void clearTileCacheAsync(LoadCallback callback) {
+        new Thread(() -> {
+            if (tileLayer != null) {
+                mapView.getLayerManager().getLayers().remove(tileLayer);
+                tileLayer.onDestroy();
+                tileLayer = null;
+            }
+            if (tileCache != null) {
+                tileCache.destroy();
+                tileCache = null;
+            }
+            deleteDir(new File(context.getFilesDir(), "tilecache"));
+            loadMapAsync(callback);
+        }, "cache-clear").start();
+    }
+
+    private void deleteDir(File dir) {
+        File[] files = dir.listFiles();
+        if (files != null) for (File f : files) f.delete();
+    }
+
     public void destroy() {
         if (tileLayer != null) {
             mapView.getLayerManager().getLayers().remove(tileLayer);

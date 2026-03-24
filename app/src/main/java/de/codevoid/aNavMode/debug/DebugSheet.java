@@ -19,6 +19,7 @@ import de.codevoid.aNavMode.R;
 import de.codevoid.aNavMode.benchmark.BenchmarkConfig;
 import de.codevoid.aNavMode.benchmark.BenchmarkResult;
 import de.codevoid.aNavMode.benchmark.BenchmarkRunner;
+import de.codevoid.aNavMode.map.MapManager;
 
 public class DebugSheet {
 
@@ -32,7 +33,8 @@ public class DebugSheet {
     private final Context context;
 
     public DebugSheet(Context context, View panelView, Callbacks callbacks,
-                      boolean polygonsOn, BenchmarkRunner benchmarkRunner) {
+                      boolean polygonsOn, BenchmarkRunner benchmarkRunner,
+                      MapManager mapManager) {
         this.context = context;
 
         android.widget.ToggleButton btnPolygons = panelView.findViewById(R.id.btnTogglePolygons);
@@ -77,6 +79,27 @@ public class DebugSheet {
                 tvStatus.setText("installed: " + installedFile + "\navailable: " + availFile);
                 btnUpdate.setText("Download & Install");
                 btnUpdate.setOnClickListener(dv -> startDownload(btnUpdate, tvStatus, release));
+            });
+        });
+
+        // Tile cache
+        Button btnClearCache = panelView.findViewById(R.id.btnClearTileCache);
+        btnClearCache.setOnClickListener(v -> {
+            btnClearCache.setEnabled(false);
+            btnClearCache.setText("Clearing…");
+            mapManager.clearTileCacheAsync(new MapManager.LoadCallback() {
+                @Override public void onLoaded() {
+                    new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
+                        btnClearCache.setEnabled(true);
+                        btnClearCache.setText("Clear Tile Cache");
+                    });
+                }
+                @Override public void onError(String r) {
+                    new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
+                        btnClearCache.setEnabled(true);
+                        btnClearCache.setText("Clear Tile Cache");
+                    });
+                }
             });
         });
 
