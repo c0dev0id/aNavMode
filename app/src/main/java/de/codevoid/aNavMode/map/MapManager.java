@@ -2,6 +2,7 @@ package de.codevoid.aNavMode.map;
 
 import android.content.Context;
 import android.os.Environment;
+import android.view.View;
 
 import org.mapsforge.core.model.LatLong;
 import org.mapsforge.core.model.MapPosition;
@@ -36,10 +37,12 @@ public class MapManager {
         this.mapView = mapView;
         mapView.getMapScaleBar().setVisible(true);
 
-        // Apply defaults derived from Round 2 benchmark results.
+        // Apply defaults derived from benchmark results.
         Parameters.NUMBER_OF_THREADS = 4;
         mapView.getModel().displayModel.setFixedTileSize(512);
         mapView.getModel().frameBufferModel.setOverdrawFactor(1.2);
+        // Round 3: hardware layer moves tile compositing to GPU → 60fps vs ~13fps SW.
+        mapView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
     }
 
     public interface LoadCallback {
