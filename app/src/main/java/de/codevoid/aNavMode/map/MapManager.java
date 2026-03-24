@@ -7,10 +7,12 @@ import org.mapsforge.core.model.LatLong;
 import org.mapsforge.core.model.MapPosition;
 import org.mapsforge.core.util.Parameters;
 import org.mapsforge.map.android.graphics.AndroidGraphicFactory;
-import org.mapsforge.map.android.util.AndroidUtil;
 import org.mapsforge.map.android.view.MapView;
 import org.mapsforge.map.datastore.MultiMapDataStore;
+import org.mapsforge.map.layer.cache.FileSystemTileCache;
+import org.mapsforge.map.layer.cache.InMemoryTileCache;
 import org.mapsforge.map.layer.cache.TileCache;
+import org.mapsforge.map.layer.cache.TwoLevelTileCache;
 import org.mapsforge.map.layer.renderer.TileRendererLayer;
 import org.mapsforge.map.reader.MapFile;
 import org.mapsforge.map.rendertheme.internal.MapsforgeThemes;
@@ -29,7 +31,10 @@ public class MapManager {
     private TileRendererLayer tileLayer;
     private TileCache         tileCache;
 
+    // In-memory tile count: ratio × visible tiles, used by benchmark sweeps.
     private float configCacheCapacity = 4f;
+    // Disk cache: absolute tile count. 4000 tiles × ~512KB (512px RGB_565) ≈ 2GB.
+    private static final int DISK_CACHE_TILES = 4000;
 
     public MapManager(Context context, MapView mapView) {
         this.context = context;
@@ -85,12 +90,23 @@ public class MapManager {
                     multi.addMapDataStore(new MapFile(f), false, false);
                 }
 
-                TileCache cache = AndroidUtil.createTileCache(
-                        context, "maincache",
-                        mapView.getModel().displayModel.getTileSize(),
-                        configCacheCapacity,
-                        mapView.getModel().frameBufferModel.getOverdrawFactor(),
-                        true /* persistent: survive process restarts */);
+                // In-memory layer: covers the current viewport + overdraw region.
+                int tileSize  = mapView.getModel().displayModel.getTileSize();
+                double overdraw = mapView.getModel().frameBufferModel.getOverdrawFactor();
+                android.util.DisplayMetrics dm = context.getResources().getDisplayMetrics();
+                int cols = (int) Math.ceil(dm.widthPixels  * overdraw / tileSize) + 1;
+                int rows = (int) Math.ceil(dm.heightPixels * overdraw / tileSize) + 1;
+                int memCapacity = (int) Math.ceil(configCacheCapacity * cols * rows);
+                InMemoryTileCache memCache = new InMemoryTileCache(memCapacity);
+
+                // Disk layer: large persistent cache on internal storage (never auto-evicted).
+                // Skips CPU rasterization on revisits; ~512KB/tile × 4000 ≈ 2GB.
+                File cacheDir = new File(context.getFilesDir(), "tilecache");
+                cacheDir.mkdirs();
+                FileSystemTileCache diskCache = new FileSystemTileCache(
+                        DISK_CACHE_TILES, cacheDir, AndroidGraphicFactory.INSTANCE, true);
+
+                TileCache cache = new TwoLevelTileCache(memCache, diskCache);
 
                 TileRendererLayer layer = new TileRendererLayer(
                         cache, multi,
