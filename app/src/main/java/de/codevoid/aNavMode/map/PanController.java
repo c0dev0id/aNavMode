@@ -20,14 +20,13 @@ import de.codevoid.aNavMode.remote.RemoteKey;
  *
  * Pan uses MercatorProjection to convert screen-pixel deltas to LatLong, which
  * correctly handles all zoom levels without manual metres-per-pixel math.
- * Zoom uses setZoomLevelDouble() for smooth sub-integer zoom steps.
+ * Zoom keys (ZOOM_IN/ZOOM_OUT) snap exactly one integer level per press.
  *
  * Ported from aWayToGo/PanController.kt (MapLibre → mapsforge).
  */
 public class PanController {
 
     private static final float PAN_SPEED_PX_PER_SEC = 120f;
-    private static final float ZOOM_SPEED_PER_SEC   = 1.5f;
     private static final float JOY_RAMP_RATE        = 1f / 0.3f;  // mag-units/s
     private static final float DT_CAP_S             = 0.05f;       // cap runaway frames at 50ms
 
@@ -42,8 +41,6 @@ public class PanController {
     private float joyEffectiveMag = 0f;
     // Last non-zero normalised direction, preserved for ramp-down after release.
     private float joyLastDirX = 0f, joyLastDirY = 0f;
-    // Fractional zoom accumulator — applied as integer steps when |acc| >= 1.
-    private float zoomAccumulator = 0f;
 
     public PanController(MapView mapView) {
         this.mapView = mapView;
@@ -53,9 +50,18 @@ public class PanController {
     public void onKeyDown(RemoteKey key) {
         switch (key) {
             case UP: case DOWN: case LEFT: case RIGHT:
-            case ZOOM_IN: case ZOOM_OUT:
                 panStartNs.put(key, System.nanoTime());
                 break;
+            case ZOOM_IN: {
+                byte z = mapView.getModel().mapViewPosition.getZoomLevel();
+                mapView.getModel().mapViewPosition.setZoomLevel((byte) Math.min(20, z + 1));
+                break;
+            }
+            case ZOOM_OUT: {
+                byte z = mapView.getModel().mapViewPosition.getZoomLevel();
+                mapView.getModel().mapViewPosition.setZoomLevel((byte) Math.max(0, z - 1));
+                break;
+            }
             default:
                 break;
         }
@@ -88,37 +94,22 @@ public class PanController {
         float dtS      = Math.min(dtNs / 1_000_000_000f, DT_CAP_S);
         float totalDx  = 0f;   // screen pixels, right = positive
         float totalDy  = 0f;   // screen pixels, down  = positive
-        float totalZoom = 0f;
         float panSpeed  = 0f;
 
-        // D-pad and zoom keys
+        // D-pad keys
         for (Map.Entry<RemoteKey, Long> entry : panStartNs.entrySet()) {
             RemoteKey key    = entry.getKey();
             float     ramp   = startRamp(frameTimeNanos, entry.getValue());
             float     ramped = 0.5f + 0.5f * ramp;
-
+            float speed = PAN_SPEED_PX_PER_SEC * ramped;
+            float px    = speed * dtS;
+            if (speed > panSpeed) panSpeed = speed;
             switch (key) {
-                case UP: case DOWN: case LEFT: case RIGHT: {
-                    float speed = PAN_SPEED_PX_PER_SEC * ramped;
-                    float px    = speed * dtS;
-                    if (speed > panSpeed) panSpeed = speed;
-                    switch (key) {
-                        case UP:    totalDy -= px; break;
-                        case DOWN:  totalDy += px; break;
-                        case LEFT:  totalDx -= px; break;
-                        case RIGHT: totalDx += px; break;
-                        default: break;
-                    }
-                    break;
-                }
-                case ZOOM_IN:
-                    totalZoom += ZOOM_SPEED_PER_SEC * ramped * dtS;
-                    break;
-                case ZOOM_OUT:
-                    totalZoom -= ZOOM_SPEED_PER_SEC * ramped * dtS;
-                    break;
-                default:
-                    break;
+                case UP:    totalDy -= px; break;
+                case DOWN:  totalDy += px; break;
+                case LEFT:  totalDx -= px; break;
+                case RIGHT: totalDx += px; break;
+                default: break;
             }
         }
 
@@ -156,21 +147,6 @@ public class PanController {
             double newLon = MercatorProjection.pixelXToLongitude(newPixelX, mapSize);
             double newLat = MercatorProjection.pixelYToLatitude(newPixelY, mapSize);
             mapView.getModel().mapViewPosition.setCenter(new LatLong(newLat, newLon));
-        }
-
-        // Apply zoom — accumulate fractional steps, apply as integer level changes
-        if (totalZoom != 0f) {
-            zoomAccumulator += totalZoom;
-            while (zoomAccumulator >= 1f) {
-                byte z = mapView.getModel().mapViewPosition.getZoomLevel();
-                mapView.getModel().mapViewPosition.setZoomLevel((byte) Math.min(20, z + 1));
-                zoomAccumulator -= 1f;
-            }
-            while (zoomAccumulator <= -1f) {
-                byte z = mapView.getModel().mapViewPosition.getZoomLevel();
-                mapView.getModel().mapViewPosition.setZoomLevel((byte) Math.max(0, z - 1));
-                zoomAccumulator += 1f;
-            }
         }
 
         return panSpeed;
