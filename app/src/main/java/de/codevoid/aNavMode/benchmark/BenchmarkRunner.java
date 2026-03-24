@@ -24,6 +24,7 @@ public class BenchmarkRunner implements Choreographer.FrameCallback {
 
     private static final long  SETTLE_MS         = 2500;
     private static final long  RUN_MS            = 5000;
+    private static final long  WARMUP_MS         = 10_000;
     private static final float PAN_RADIUS_PX     = 150f;
     private static final float PAN_PERIOD_MS     = 8000f;
     private static final long  JANK_THRESHOLD_NS = 20_000_000L; // 20 ms
@@ -156,9 +157,10 @@ public class BenchmarkRunner implements Choreographer.FrameCallback {
                 long elapsedMs = (frameTimeNanos - stateStartNs) / 1_000_000L;
 
                 // FPS cap: skip model updates that arrive too early.
+                long runDurationMs = configs.get(configIndex).warmup ? WARMUP_MS : RUN_MS;
                 if (targetFrameIntervalNs > 0 && lastPanNs != 0
                         && (frameTimeNanos - lastPanNs) < targetFrameIntervalNs) {
-                    if (elapsedMs < RUN_MS) Choreographer.getInstance().postFrameCallback(this);
+                    if (elapsedMs < runDurationMs) Choreographer.getInstance().postFrameCallback(this);
                     else recordResult();
                     return;
                 }
@@ -179,7 +181,7 @@ public class BenchmarkRunner implements Choreographer.FrameCallback {
                 prevFrameNs = frameTimeNanos;
                 frameCount++;
 
-                if (elapsedMs >= RUN_MS) {
+                if (elapsedMs >= runDurationMs) {
                     recordResult();
                 } else {
                     Choreographer.getInstance().postFrameCallback(this);
