@@ -47,7 +47,7 @@ public class DebugSheet {
         panelView.findViewById(R.id.btnClearWaypoints).setOnClickListener(v ->
                 callbacks.onClearWaypoints());
 
-        Button btnUpdate = panelView.findViewById(R.id.btnCheckUpdate);
+        Button   btnUpdate = panelView.findViewById(R.id.btnCheckUpdate);
         TextView tvStatus = panelView.findViewById(R.id.tvUpdateStatus);
 
         String installedFile = "aNavMode-nightly-" + de.codevoid.aNavMode.BuildConfig.GIT_HASH + ".apk";
@@ -83,18 +83,27 @@ public class DebugSheet {
         // Benchmark
         Button   btnRound1  = panelView.findViewById(R.id.btnRunBenchmark1);
         Button   btnRound2  = panelView.findViewById(R.id.btnRunBenchmark2);
+        Button   btnRound3  = panelView.findViewById(R.id.btnRunBenchmark3);
         Button   btnStop    = panelView.findViewById(R.id.btnStopBenchmark);
         TextView tvProgress = panelView.findViewById(R.id.tvBenchmarkProgress);
 
         View.OnClickListener startBenchmark = v -> {
-            boolean isRound2 = v.getId() == R.id.btnRunBenchmark2;
-            String roundLabel = isRound2 ? "Round 2" : "Round 1";
-            List<BenchmarkConfig> matrix = isRound2
-                    ? BenchmarkRunner.buildRound2Matrix()
-                    : BenchmarkRunner.buildRound1Matrix();
+            String roundLabel;
+            List<BenchmarkConfig> matrix;
+            if (v.getId() == R.id.btnRunBenchmark3) {
+                roundLabel = "Round 3";
+                matrix     = BenchmarkRunner.buildRound3Matrix();
+            } else if (v.getId() == R.id.btnRunBenchmark2) {
+                roundLabel = "Round 2";
+                matrix     = BenchmarkRunner.buildRound2Matrix();
+            } else {
+                roundLabel = "Round 1";
+                matrix     = BenchmarkRunner.buildRound1Matrix();
+            }
 
             btnRound1.setEnabled(false);
             btnRound2.setEnabled(false);
+            btnRound3.setEnabled(false);
             btnStop.setVisibility(View.VISIBLE);
             btnStop.setEnabled(true);
             tvProgress.setVisibility(View.VISIBLE);
@@ -111,6 +120,7 @@ public class DebugSheet {
                 public void onComplete(List<BenchmarkResult> results) {
                     btnRound1.setEnabled(true);
                     btnRound2.setEnabled(true);
+                    btnRound3.setEnabled(true);
                     btnStop.setVisibility(View.GONE);
                     tvProgress.setText(roundLabel + " done — " + results.size() + " runs");
                     showReport(results, benchmarkRunner, roundLabel);
@@ -120,6 +130,7 @@ public class DebugSheet {
 
         btnRound1.setOnClickListener(startBenchmark);
         btnRound2.setOnClickListener(startBenchmark);
+        btnRound3.setOnClickListener(startBenchmark);
 
         btnStop.setOnClickListener(v -> {
             benchmarkRunner.stop();

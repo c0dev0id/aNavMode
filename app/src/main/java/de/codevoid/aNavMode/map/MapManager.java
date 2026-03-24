@@ -29,12 +29,17 @@ public class MapManager {
     private TileRendererLayer tileLayer;
     private TileCache         tileCache;
 
-    private float configCacheCapacity = 1f;
+    private float configCacheCapacity = 2f;
 
     public MapManager(Context context, MapView mapView) {
         this.context = context;
         this.mapView = mapView;
         mapView.getMapScaleBar().setVisible(true);
+
+        // Apply defaults derived from Round 2 benchmark results.
+        Parameters.NUMBER_OF_THREADS = 4;
+        mapView.getModel().displayModel.setFixedTileSize(512);
+        mapView.getModel().frameBufferModel.setOverdrawFactor(1.2);
     }
 
     public interface LoadCallback {

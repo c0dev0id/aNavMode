@@ -4,6 +4,7 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.Choreographer;
+import android.view.View;
 
 import org.mapsforge.core.model.LatLong;
 import org.mapsforge.core.util.MercatorProjection;
@@ -49,6 +50,7 @@ public class BenchmarkRunner implements Choreographer.FrameCallback {
     private float savedCacheCapacity;
     private float savedOverdraw;
     private int   savedTileSize;
+    private int   savedLayerType;
 
     private State state = State.IDLE;
     private long  stateStartNs;
@@ -90,6 +92,7 @@ public class BenchmarkRunner implements Choreographer.FrameCallback {
         savedCacheCapacity = mapManager.getCacheCapacity();
         savedOverdraw      = (float) mapView.getModel().frameBufferModel.getOverdrawFactor();
         savedTileSize      = mapView.getModel().displayModel.getTileSize();
+        savedLayerType     = mapView.getLayerType();
 
         runNext();
     }
@@ -113,6 +116,8 @@ public class BenchmarkRunner implements Choreographer.FrameCallback {
 
         mapView.getModel().mapViewPosition.setCenter(startPosition);
         mapView.getModel().mapViewPosition.setZoomLevel(config.zoomLevel);
+        mapView.setLayerType(
+                config.hardwareLayer ? View.LAYER_TYPE_HARDWARE : View.LAYER_TYPE_SOFTWARE, null);
 
         state = State.LOADING;
         mapManager.reconfigure(
@@ -219,6 +224,7 @@ public class BenchmarkRunner implements Choreographer.FrameCallback {
 
     private void finish() {
         state = State.IDLE;
+        mapView.setLayerType(savedLayerType, null);
         mapManager.reconfigure(savedThreads, savedCacheCapacity, savedOverdraw, savedTileSize,
                 new MapManager.LoadCallback() {
                     @Override public void onLoaded() {}
@@ -296,6 +302,24 @@ public class BenchmarkRunner implements Choreographer.FrameCallback {
         return list;
     }
 
+    /**
+     * Round 3: hardware-layer on/off against the Round 2 winning config family.
+     * Base: threads=4, cache=2x, overdraw=1.2, fps=max
+     * Variables: hardwareLayer(2) × tileSize(3) × zoom(2) = 12 runs
+     */
+    public static List<BenchmarkConfig> buildRound3Matrix() {
+        boolean[] hwFlags = {true, false};
+        int[]     tiles   = {256, 512, 768};
+        byte[]    zooms   = {14, 17};
+
+        List<BenchmarkConfig> list = new ArrayList<>();
+        for (byte zoom : zooms)
+            for (int tile : tiles)
+                for (boolean hw : hwFlags)
+                    list.add(new BenchmarkConfig(4, 2f, 1.2f, tile, zoom, 0, hw));
+        return list;
+    }
+
     // -------------------------------------------------------------------------
     // Report
     // -------------------------------------------------------------------------
@@ -315,7 +339,7 @@ public class BenchmarkRunner implements Choreographer.FrameCallback {
           .append(sorted.size()).append(" configs\n\n");
 
         sb.append(BenchmarkConfig.reportHeader()).append("\n");
-        for (int i = 0; i < 78; i++) sb.append('-');
+        for (int i = 0; i < 82; i++) sb.append('-');
         sb.append("\n");
 
         int rank = 1;
@@ -330,6 +354,7 @@ public class BenchmarkRunner implements Choreographer.FrameCallback {
               .append(", tileSize=").append(bc.tileSize)
               .append(", zoom=").append((int) bc.zoomLevel)
               .append(", fps=").append(bc.targetFps == 0 ? "max" : bc.targetFps)
+              .append(", hw=").append(bc.hardwareLayer ? "yes" : "no")
               .append(" → ").append(String.format(Locale.US, "%.1f avg FPS", best.avgFps))
               .append("\n");
         }
