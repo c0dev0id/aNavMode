@@ -11,14 +11,12 @@ import org.mapsforge.map.android.view.MapView;
 import org.mapsforge.map.model.MapViewPosition;
 
 /**
- * MapView with fluid (non-snapping) pinch zoom.
+ * MapView with fluid (non-snapping) pinch zoom and no tile loading during gesture.
  *
- * Mapsforge's built-in TouchEventHandler calls setZoomLevel() on
- * ACTION_POINTER_UP, which resets the fractional scale factor and snaps
- * the map to the nearest integer zoom level. We intercept multi-touch events
- * with our own ScaleGestureDetector, multiply the current scaleFactor by
- * the gesture's incremental scaleFactor each frame, and never call super for
- * scale events, preventing the snap entirely.
+ * During a pinch gesture the map model is never touched — all visual zoom is
+ * applied through Android's View scale transform (setScaleX/Y + setPivot).
+ * Tile loading is triggered exactly once when the fingers lift, via a single
+ * setCenter + setZoom(fractional, false) call in commitGestureZoom().
  *
  * Single-touch events are passed to super unchanged so mapsforge handles
  * panning and tapping as normal.
@@ -28,22 +26,46 @@ public class SmoothMapView extends MapView {
     private final ScaleGestureDetector scaleDetector;
     private boolean pinching = false;
 
+    // Visual scale accumulated during a pinch gesture.
+    // Applied as a View transform — no model changes until gesture ends.
+    private float gestureScale = 1f;
+    private float gestureFocusX, gestureFocusY;
+
     public SmoothMapView(Context context, AttributeSet attrs) {
         super(context, attrs);
         scaleDetector = new ScaleGestureDetector(context,
                 new ScaleGestureDetector.SimpleOnScaleGestureListener() {
                     @Override
+                    public boolean onScaleBegin(ScaleGestureDetector d) {
+                        gestureScale  = 1f;
+                        gestureFocusX = d.getFocusX();
+                        gestureFocusY = d.getFocusY();
+                        return true;
+                    }
+
+                    @Override
                     public boolean onScale(ScaleGestureDetector d) {
-                        MapViewPosition pos = getModel().mapViewPosition;
-                        pos.setPivot(screenToLatLong(d.getFocusX(), d.getFocusY()));
-                        pos.setScaleFactor(pos.getScaleFactor() * d.getScaleFactor());
+                        gestureScale  *= d.getScaleFactor();
+                        gestureFocusX  = d.getFocusX();
+                        gestureFocusY  = d.getFocusY();
+                        setPivotX(gestureFocusX);
+                        setPivotY(gestureFocusY);
+                        setScaleX(gestureScale);
+                        setScaleY(gestureScale);
                         return true;
                     }
 
                     @Override
                     public void onScaleEnd(ScaleGestureDetector d) {
-                        // Clear pivot only — intentionally no setZoomLevel() here
-                        getModel().mapViewPosition.setPivot(null);
+                        float scale = gestureScale;
+                        float fx    = gestureFocusX;
+                        float fy    = gestureFocusY;
+                        gestureScale = 1f;
+                        // Reset View transform before the model update so that the
+                        // new tiles render at scale=1 on the next frame.
+                        setScaleX(1f);
+                        setScaleY(1f);
+                        commitGestureZoom(scale, fx, fy);
                     }
                 });
     }
@@ -87,19 +109,52 @@ public class SmoothMapView extends MapView {
 
     // -------------------------------------------------------------------------
 
-    /** Converts a screen coordinate to a geographic LatLong for use as zoom pivot. */
-    private LatLong screenToLatLong(float screenX, float screenY) {
-        MapViewPosition pos = getModel().mapViewPosition;
-        LatLong center = pos.getCenter();
-        byte zoom = pos.getZoomLevel();
-        int tileSize = getModel().displayModel.getTileSize();
-        long mapSize = MercatorProjection.getMapSize(zoom, tileSize);
+    /**
+     * Commits the visual scale accumulated during a pinch gesture into the map
+     * model. Called exactly once on gesture release — the only point where tile
+     * loading is triggered.
+     *
+     * @param scale  total scale factor of the completed gesture (1f = no-op)
+     * @param focusX screen X of the gesture focal point
+     * @param focusY screen Y of the gesture focal point
+     */
+    private void commitGestureZoom(float scale, float focusX, float focusY) {
+        if (scale == 1f) return;
+
+        MapViewPosition pos      = getModel().mapViewPosition;
+        LatLong         center   = pos.getCenter();
+        int             tileSize = getModel().displayModel.getTileSize();
+
+        // Effective map size at the current fractional zoom.
+        // (tileSize * 2^z, where z may be fractional from a prior gesture commit.)
+        double scaleFactor = pos.getScaleFactor();
+        long   mapSize     = (long) (tileSize * scaleFactor);
+
+        // World-pixel coordinates of the current map center and focal point.
         double cx = MercatorProjection.longitudeToPixelX(center.longitude, mapSize);
-        double cy = MercatorProjection.latitudeToPixelY(center.latitude, mapSize);
-        double px = cx + screenX - getWidth() / 2.0;
-        double py = cy + screenY - getHeight() / 2.0;
-        return new LatLong(
-                MercatorProjection.pixelYToLatitude(py, mapSize),
-                MercatorProjection.pixelXToLongitude(px, mapSize));
+        double cy = MercatorProjection.latitudeToPixelY(center.latitude,   mapSize);
+        double fx = cx + (focusX - getWidth()  / 2.0);
+        double fy = cy + (focusY - getHeight() / 2.0);
+
+        // New fractional zoom — clamp to the supported range.
+        double newZoom = pos.getZoom() + Math.log(scale) / Math.log(2);
+        newZoom = Math.max(pos.getZoomLevelMin(), Math.min(pos.getZoomLevelMax(), newZoom));
+
+        // World pixels scale linearly with map size, so the focal point in the
+        // new coordinate system is simply fx * scale, fy * scale.
+        long   newMapSize = (long) (tileSize * Math.pow(2, newZoom));
+        double newFx      = fx * scale;
+        double newFy      = fy * scale;
+
+        // New center: focal world pixel minus its screen offset from the view centre.
+        double newCx = newFx - (focusX - getWidth()  / 2.0);
+        double newCy = newFy - (focusY - getHeight() / 2.0);
+
+        LatLong newCenter = new LatLong(
+                MercatorProjection.pixelYToLatitude(newCy, newMapSize),
+                MercatorProjection.pixelXToLongitude(newCx, newMapSize));
+
+        pos.setCenter(newCenter);
+        pos.setZoom(newZoom, false);
     }
 }
