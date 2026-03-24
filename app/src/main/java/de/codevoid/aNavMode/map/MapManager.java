@@ -145,7 +145,7 @@ public class MapManager {
                             int tileSize, LoadCallback callback) {
         Parameters.NUMBER_OF_THREADS = threads;
         configCacheCapacity = cacheCapacity;
-        mapView.getModel().displayModel.setTileSize(tileSize);
+        mapView.getModel().displayModel.setFixedTileSize(tileSize);
         mapView.getModel().frameBufferModel.setOverdrawFactor(overdrawFactor);
         loadMapAsync(callback);
     }
