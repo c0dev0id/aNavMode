@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.view.Choreographer;
 import android.view.View;
 import android.widget.Toast;
+import android.widget.ToggleButton;
 
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -19,6 +20,8 @@ import org.mapsforge.map.android.view.MapView;
 import org.mapsforge.core.util.Parameters;
 
 import de.codevoid.aNavMode.benchmark.BenchmarkRunner;
+import de.codevoid.aNavMode.poi.PoiDomain;
+import de.codevoid.aNavMode.poi.PoiLayer;
 import de.codevoid.aNavMode.debug.DebugSheet;
 import de.codevoid.aNavMode.download.DownloadCatalog;
 import de.codevoid.aNavMode.download.DownloadDomain;
@@ -49,6 +52,8 @@ public class MainActivity extends AppCompatActivity
     private RegionOverlayLayer    regionOverlay;
     private DownloadCardStack     downloadCards;
     private BenchmarkRunner       benchmarkRunner;
+    private PoiDomain             poiDomain;
+    private PoiLayer              poiLayer;
 
     private final Choreographer.FrameCallback frameCallback = new Choreographer.FrameCallback() {
         private long lastFrameNanos = 0;
@@ -115,9 +120,19 @@ public class MainActivity extends AppCompatActivity
         // Domain and layer are ready immediately; map tiles stream in once the file is open
         routingDomain = new RoutingDomain(new BRouterEngine(this), mapView);
 
-        // RegionOverlayLayer sits above tiles (index 1), below WaypointLayer
+        // RegionOverlayLayer sits above tiles, below POIs and waypoints
         regionOverlay = new RegionOverlayLayer(mapView);
         mapView.getLayerManager().getLayers().add(regionOverlay);
+
+        // PoiLayer above region overlay, below waypoints
+        poiDomain = new PoiDomain(this);
+        poiLayer  = new PoiLayer(mapView, poiDomain, getResources().getDisplayMetrics().density);
+        mapView.getLayerManager().getLayers().add(poiLayer);
+
+        ToggleButton toggleFuel = findViewById(R.id.toggleFuel);
+        ToggleButton toggleFood = findViewById(R.id.toggleFood);
+        toggleFuel.setOnCheckedChangeListener((btn, checked) -> poiLayer.setShowFuel(checked));
+        toggleFood.setOnCheckedChangeListener((btn, checked) -> poiLayer.setShowFood(checked));
 
         // WaypointLayer must be the last (topmost) layer so it receives taps first
         waypointLayer = new WaypointLayer(mapView, routingDomain,
@@ -284,6 +299,8 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onDestroy() {
         if (locationHelper  != null) locationHelper.cancel();
+        if (poiLayer        != null) { poiLayer.destroy(); mapView.getLayerManager().getLayers().remove(poiLayer); }
+        if (poiDomain       != null) poiDomain.destroy();
         if (waypointLayer   != null) waypointLayer.destroy();
         if (regionOverlay   != null) mapView.getLayerManager().getLayers().remove(regionOverlay);
         if (routingDomain   != null) routingDomain.destroy();

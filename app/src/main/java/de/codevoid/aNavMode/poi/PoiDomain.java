@@ -91,7 +91,10 @@ public class PoiDomain {
 
     // Accessed only on executor thread
     private final List<PoiPersistenceManager> managers = new ArrayList<>();
-    private       BoundingBox                 lastBbox  = null;
+
+    // Volatile: checked on the calling thread (render thread) before submitting to executor,
+    // so rapid draw() calls don't flood the queue with duplicate queries.
+    private volatile BoundingBox lastBbox = null;
 
     private volatile State currentState = State.EMPTY;
 
@@ -120,10 +123,12 @@ public class PoiDomain {
      * Safe to call from any thread.
      */
     public void queryViewport(BoundingBox bbox) {
+        // Fast path on calling thread: skip submission if viewport hasn't moved enough.
+        // lastBbox is volatile so the render thread can read it without locking.
+        if (isSimilarEnough(bbox, lastBbox)) return;
+        lastBbox = bbox; // update before submit so concurrent calls don't double-queue
         executor.execute(() -> {
             if (managers.isEmpty()) return;
-            if (isSimilarEnough(bbox, lastBbox)) return;
-            lastBbox = bbox;
 
             List<Poi> results = new ArrayList<>();
 
@@ -156,9 +161,9 @@ public class PoiDomain {
      * Call after a region download completes.
      */
     public void reload() {
+        lastBbox = null; // force a fresh query after reload
         executor.execute(() -> {
             closeAll();
-            lastBbox = null;
             openPoiFiles();
         });
     }

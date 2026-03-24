@@ -46,6 +46,44 @@
         android:src="@android:drawable/ic_menu_more"
         android:contentDescription="Debug menu" />
 
+    <!-- POI category toggles — bottom-right -->
+    <LinearLayout
+        android:id="@+id/poiToggles"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="16dp"
+        android:orientation="horizontal">
+
+        <ToggleButton
+            android:id="@+id/toggleFuel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textOn="Fuel"
+            android:textOff="Fuel"
+            android:checked="false"
+            android:minWidth="0dp"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp" />
+
+        <ToggleButton
+            android:id="@+id/toggleFood"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:textOn="Food"
+            android:textOff="Food"
+            android:checked="false"
+            android:minWidth="0dp"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp" />
+
+    </LinearLayout>
+
     <!-- Debug panel — floating card, toggled by fabDebug, initially hidden -->
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/debugPanel"
