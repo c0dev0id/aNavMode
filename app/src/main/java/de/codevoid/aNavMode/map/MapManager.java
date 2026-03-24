@@ -12,7 +12,7 @@ import org.mapsforge.map.datastore.MultiMapDataStore;
 import org.mapsforge.map.layer.cache.TileCache;
 import org.mapsforge.map.layer.renderer.TileRendererLayer;
 import org.mapsforge.map.reader.MapFile;
-import org.mapsforge.map.rendertheme.InternalRenderTheme;
+import org.mapsforge.map.rendertheme.internal.MapsforgeThemes;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -85,7 +85,7 @@ public class MapManager {
                         cache, multi,
                         mapView.getModel().mapViewPosition,
                         AndroidGraphicFactory.INSTANCE);
-                layer.setXmlRenderTheme(InternalRenderTheme.DEFAULT);
+                layer.setXmlRenderTheme(MapsforgeThemes.DEFAULT);
 
                 mapView.getLayerManager().getLayers().add(0, layer);
                 tileCache = cache;

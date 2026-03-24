@@ -34,7 +34,7 @@ public class SmoothMapView extends MapView {
                 new ScaleGestureDetector.SimpleOnScaleGestureListener() {
                     @Override
                     public boolean onScale(ScaleGestureDetector d) {
-                        MapViewPosition pos = (MapViewPosition) getModel().mapViewPosition;
+                        MapViewPosition pos = getModel().mapViewPosition;
                         pos.setPivot(screenToLatLong(d.getFocusX(), d.getFocusY()));
                         pos.setScaleFactorAdjustment(d.getScaleFactor());
                         return true;
@@ -89,7 +89,7 @@ public class SmoothMapView extends MapView {
 
     /** Converts a screen coordinate to a geographic LatLong for use as zoom pivot. */
     private LatLong screenToLatLong(float screenX, float screenY) {
-        MapViewPosition pos = (MapViewPosition) getModel().mapViewPosition;
+        MapViewPosition pos = getModel().mapViewPosition;
         LatLong center = pos.getCenter();
         byte zoom = pos.getZoomLevel();
         int tileSize = getModel().displayModel.getTileSize();
