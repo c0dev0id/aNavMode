@@ -2,7 +2,6 @@ package de.codevoid.aNavMode.routing;
 
 import android.content.Context;
 import android.content.res.AssetManager;
-import android.os.Environment;
 import android.util.Log;
 
 import java.io.File;
@@ -21,7 +20,7 @@ import btools.router.RoutingEngine;
  * Routes via bundled BRouter core (no separate BRouter APK required).
  *
  * Segment files (.rd5) must be placed at:
- *   /sdcard/aNavMode/brouter/segments4/
+ *   {filesDir}/brouter/segments4/
  *
  * Profile scripts are bundled in assets/brouter/profiles/ and copied
  * to getFilesDir()/brouter/profiles/ on first call.
@@ -32,8 +31,8 @@ public class BRouterEngine implements de.codevoid.aNavMode.routing.RoutingEngine
 
     private static final String TAG = "BRouterEngine";
 
-    // Segment files live here — must survive reinstall
-    private static final String SEGMENTS_PATH = "aNavMode/brouter/segments4";
+    // Segment files live in internal storage (no permissions needed).
+    private static final String SEGMENTS_SUBDIR = "brouter/segments4";
 
     // Profile name → bundled asset file
     private static final String[] PROFILE_ASSETS = {
@@ -54,8 +53,7 @@ public class BRouterEngine implements de.codevoid.aNavMode.routing.RoutingEngine
         try {
             ensureProfiles();
 
-            File segmentDir = new File(
-                    Environment.getExternalStorageDirectory(), SEGMENTS_PATH);
+            File segmentDir = new File(context.getFilesDir(), SEGMENTS_SUBDIR);
 
             if (!segmentDir.exists()) {
                 Log.w(TAG, "BRouter segment dir missing: " + segmentDir);

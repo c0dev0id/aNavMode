@@ -6,7 +6,6 @@ import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkCapabilities;
 import android.net.NetworkRequest;
-import android.os.Environment;
 import android.util.Log;
 
 import org.json.JSONException;
@@ -618,14 +617,12 @@ public class DownloadDomain {
     // -------------------------------------------------------------------------
 
     private File localFile(String mirrorPath) {
-        if (mirrorPath.startsWith("segments4/")) {
-            // BRouter segments stay on external storage; BRouter app reads from there.
-            return new File(
-                    new File(Environment.getExternalStorageDirectory(), "aNavMode/brouter"),
-                    mirrorPath);
-        }
-        // Map files go to internal storage (no permission needed, faster I/O).
-        return new File(context.getFilesDir(), mirrorPath);
+        // segments4/* → brouter/segments4/*; everything else maps directly.
+        // All data lives in internal storage — no external permissions needed.
+        String localPath = mirrorPath.startsWith("segments4/")
+                ? "brouter/" + mirrorPath
+                : mirrorPath;
+        return new File(context.getFilesDir(), localPath);
     }
 
     private boolean needsDownload(File local, String catalogModified) {

@@ -1,13 +1,8 @@
 package de.codevoid.aNavMode;
 
 import android.Manifest;
-import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
-import android.provider.Settings;
 import android.view.Choreographer;
 import android.view.View;
 import android.widget.Toast;
@@ -77,7 +72,6 @@ public class MainActivity extends AppCompatActivity
         }
     };
 
-    private static final int REQ_STORAGE  = 1;
     private static final int REQ_LOCATION = 2;
 
     @Override
@@ -209,40 +203,14 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void requestStorageAndInit() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            // Android 11+: need All Files Access to read /sdcard/aNavMode/
-            if (!Environment.isExternalStorageManager()) {
-                Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION,
-                        Uri.parse("package:" + getPackageName()));
-                startActivityForResult(intent, REQ_STORAGE);
-                return;
-            }
-        } else {
-            // Android 8-10: READ_EXTERNAL_STORAGE suffices
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
-                    != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this,
-                        new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, REQ_STORAGE);
-                return;
-            }
-        }
+        // All map and routing data is on internal storage — no external permission needed.
         initMap();
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == REQ_STORAGE) {
-            initMap(); // proceed regardless; loadMap() handles missing/unreadable file gracefully
-        }
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == REQ_STORAGE) {
-            initMap();
-        } else if (requestCode == REQ_LOCATION) {
+        if (requestCode == REQ_LOCATION) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 locateAndCenter();
             }

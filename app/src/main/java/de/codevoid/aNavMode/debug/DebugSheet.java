@@ -39,7 +39,7 @@ public class DebugSheet {
 
         // Migration
         Button btnMigrate = panelView.findViewById(R.id.btnMigrateMaps);
-        java.io.File legacyDir = mapManager.getLegacyExternalMapsDir();
+        java.io.File legacyDir = mapManager.getLegacyExternalDataDir();
         if (!legacyDir.isDirectory()) {
             btnMigrate.setEnabled(false);
             btnMigrate.setText("Migrate Maps (no legacy dir found)");

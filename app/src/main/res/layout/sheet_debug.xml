@@ -18,7 +18,7 @@
         style="@style/Widget.MaterialComponents.Button.OutlinedButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Migrate Maps to Internal Storage"
+        android:text="Migrate Data to Internal Storage"
         android:layout_marginBottom="8dp" />
 
     <Button

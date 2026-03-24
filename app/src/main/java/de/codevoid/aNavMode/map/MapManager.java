@@ -113,9 +113,9 @@ public class MapManager {
         return new File(context.getFilesDir(), "maps");
     }
 
-    /** Returns the legacy external maps directory (used only for migration). */
-    public File getLegacyExternalMapsDir() {
-        return new File(Environment.getExternalStorageDirectory(), "aNavMode/maps");
+    /** Returns the legacy external data root (used only for migration). */
+    public File getLegacyExternalDataDir() {
+        return new File(Environment.getExternalStorageDirectory(), "aNavMode");
     }
 
     /**
@@ -145,19 +145,17 @@ public class MapManager {
             if (!src.isDirectory()) { cb.onComplete(0, 0); return; }
 
             List<File> found = new ArrayList<>();
-            scanMaps(src, found);
+            collectFiles(src, found);
             if (found.isEmpty()) { cb.onComplete(0, 0); return; }
 
-            File dst = getInternalMapsDir();
-            dst.mkdirs();
+            File dst = context.getFilesDir();
 
             int migrated = 0, skipped = 0;
             for (int i = 0; i < found.size(); i++) {
                 File from = found.get(i);
-                // Preserve relative path under the maps dir.
-                String rel  = from.getAbsolutePath()
+                String rel = from.getAbsolutePath()
                         .substring(src.getAbsolutePath().length() + 1);
-                File   to   = new File(dst, rel);
+                File to = new File(dst, rel);
                 cb.onProgress(from.getName(), i + 1, found.size());
                 if (to.exists()) { skipped++; continue; }
                 to.getParentFile().mkdirs();
@@ -171,6 +169,15 @@ public class MapManager {
             }
             cb.onComplete(migrated, skipped);
         }, "map-migrate").start();
+    }
+
+    private static void collectFiles(File dir, List<File> out) {
+        File[] entries = dir.listFiles();
+        if (entries == null) return;
+        for (File f : entries) {
+            if (f.isDirectory()) collectFiles(f, out);
+            else out.add(f);
+        }
     }
 
     private static void copyFile(File from, File to) throws Exception {
