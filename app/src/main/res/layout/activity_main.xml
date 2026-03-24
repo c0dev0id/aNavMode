@@ -36,14 +36,31 @@
         android:src="@android:drawable/ic_input_add"
         android:contentDescription="Add waypoint at crosshair" />
 
-    <!-- Debug tools -->
+    <!-- Debug tools FAB — top left -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabDebug"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
+        android:layout_gravity="top|start"
         android:layout_margin="16dp"
         android:src="@android:drawable/ic_menu_more"
         android:contentDescription="Debug menu" />
+
+    <!-- Debug panel — floating card, toggled by fabDebug, initially hidden -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/debugPanel"
+        android:layout_width="280dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|start"
+        android:layout_marginTop="80dp"
+        android:layout_marginStart="16dp"
+        android:visibility="gone"
+        app:cardElevation="8dp"
+        app:cardCornerRadius="8dp"
+        xmlns:app="http://schemas.android.com/apk/res-auto">
+
+        <include layout="@layout/sheet_debug" />
+
+    </com.google.android.material.card.MaterialCardView>
 
 </FrameLayout>

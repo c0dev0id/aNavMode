@@ -7,6 +7,7 @@ import android.view.ScaleGestureDetector;
 
 import org.mapsforge.core.model.LatLong;
 import org.mapsforge.core.util.MercatorProjection;
+import org.mapsforge.core.util.Parameters;
 import org.mapsforge.map.android.view.MapView;
 import org.mapsforge.map.model.MapViewPosition;
 
@@ -33,6 +34,11 @@ public class SmoothMapView extends MapView {
 
     public SmoothMapView(Context context, AttributeSet attrs) {
         super(context, attrs);
+        // Required: mapsforge's getMapPosition() returns the integer zoomLevel when
+        // FRACTIONAL_ZOOM is false, which causes pan math and the renderer to ignore the
+        // fractional scaleFactor we set in commitGestureZoom — visible as a snap-back on
+        // gesture end. With FRACTIONAL_ZOOM=true both use the fractional scaleFactor.
+        Parameters.FRACTIONAL_ZOOM = true;
         scaleDetector = new ScaleGestureDetector(context,
                 new ScaleGestureDetector.SimpleOnScaleGestureListener() {
                     @Override

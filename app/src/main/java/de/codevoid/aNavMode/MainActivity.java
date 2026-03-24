@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.provider.Settings;
 import android.view.Choreographer;
+import android.view.View;
 import android.widget.Toast;
 
 import androidx.core.app.ActivityCompat;
@@ -95,8 +96,13 @@ public class MainActivity extends AppCompatActivity
         FloatingActionButton fabAdd = findViewById(R.id.fabAddWaypoint);
         fabAdd.setOnClickListener(v -> { if (routingDomain != null) routingDomain.addAtCenter(); });
 
+        View debugPanel = findViewById(R.id.debugPanel);
+        new DebugSheet(this, debugPanel, this, polygonsForced);
+
         FloatingActionButton fab = findViewById(R.id.fabDebug);
-        fab.setOnClickListener(v -> new DebugSheet(this, this, polygonsForced).show());
+        fab.setOnClickListener(v ->
+                debugPanel.setVisibility(
+                        debugPanel.getVisibility() == View.VISIBLE ? View.GONE : View.VISIBLE));
     }
 
     private void initMap() {

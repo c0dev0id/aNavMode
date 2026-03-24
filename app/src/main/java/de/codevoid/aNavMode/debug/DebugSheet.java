@@ -1,12 +1,9 @@
 package de.codevoid.aNavMode.debug;
 
 import android.content.Context;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
-
-import com.google.android.material.bottomsheet.BottomSheetDialog;
 
 import de.codevoid.aNavMode.R;
 
@@ -19,32 +16,25 @@ public class DebugSheet {
         void onTogglePolygons(boolean show);
     }
 
-    private final BottomSheetDialog dialog;
+    private final Context context;
 
-    public DebugSheet(Context context, Callbacks callbacks, boolean polygonsOn) {
-        dialog = new BottomSheetDialog(context);
-        View view = LayoutInflater.from(context).inflate(R.layout.sheet_debug, null);
+    public DebugSheet(Context context, View panelView, Callbacks callbacks, boolean polygonsOn) {
+        this.context = context;
 
-        android.widget.ToggleButton btnPolygons = view.findViewById(R.id.btnTogglePolygons);
+        android.widget.ToggleButton btnPolygons = panelView.findViewById(R.id.btnTogglePolygons);
         btnPolygons.setChecked(polygonsOn);
         btnPolygons.setOnCheckedChangeListener((btn, isChecked) ->
                 callbacks.onTogglePolygons(isChecked));
 
-        view.findViewById(R.id.btnDownloadMap).setOnClickListener(v -> {
-            dialog.dismiss();
-            callbacks.onDownloadMap();
-        });
-        view.findViewById(R.id.btnUpdateRouteData).setOnClickListener(v -> {
-            dialog.dismiss();
-            callbacks.onUpdateRouteData();
-        });
-        view.findViewById(R.id.btnClearWaypoints).setOnClickListener(v -> {
-            dialog.dismiss();
-            callbacks.onClearWaypoints();
-        });
+        panelView.findViewById(R.id.btnDownloadMap).setOnClickListener(v ->
+                callbacks.onDownloadMap());
+        panelView.findViewById(R.id.btnUpdateRouteData).setOnClickListener(v ->
+                callbacks.onUpdateRouteData());
+        panelView.findViewById(R.id.btnClearWaypoints).setOnClickListener(v ->
+                callbacks.onClearWaypoints());
 
-        Button btnUpdate = view.findViewById(R.id.btnCheckUpdate);
-        TextView tvStatus = view.findViewById(R.id.tvUpdateStatus);
+        Button btnUpdate = panelView.findViewById(R.id.btnCheckUpdate);
+        TextView tvStatus = panelView.findViewById(R.id.tvUpdateStatus);
 
         String installedFile = "aNavMode-nightly-" + de.codevoid.aNavMode.BuildConfig.GIT_HASH + ".apk";
         tvStatus.setVisibility(View.VISIBLE);
@@ -72,15 +62,12 @@ public class DebugSheet {
 
                 tvStatus.setText("installed: " + installedFile + "\navailable: " + availFile);
                 btnUpdate.setText("Download & Install");
-                btnUpdate.setOnClickListener(dv -> startDownload(context, btnUpdate, tvStatus, release));
+                btnUpdate.setOnClickListener(dv -> startDownload(btnUpdate, tvStatus, release));
             });
         });
-
-        dialog.setContentView(view);
     }
 
-    private void startDownload(Context context, Button btn, TextView tvStatus,
-                               UpdateChecker.Release release) {
+    private void startDownload(Button btn, TextView tvStatus, UpdateChecker.Release release) {
         btn.setEnabled(false);
         btn.setText("Downloading…");
         tvStatus.setVisibility(View.VISIBLE);
@@ -96,7 +83,6 @@ public class DebugSheet {
             public void onComplete(java.io.File apk) {
                 tvStatus.setText("Download complete. Installing…");
                 UpdateChecker.install(context, apk);
-                dialog.dismiss();
             }
 
             @Override
@@ -106,9 +92,5 @@ public class DebugSheet {
                 tvStatus.setText("Download failed: " + error);
             }
         });
-    }
-
-    public void show() {
-        dialog.show();
     }
 }
