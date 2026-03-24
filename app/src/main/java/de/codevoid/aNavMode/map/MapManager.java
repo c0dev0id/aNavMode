@@ -35,7 +35,7 @@ public class MapManager {
     private float configCacheCapacity = 4f;
     // Disk cache: absolute tile count. 4000 tiles × ~512KB (512px RGB_565) ≈ 2GB.
     private static final int DISK_CACHE_TILES  = 4000;
-    private static final int DEFAULT_TILE_SIZE = 128;
+    private static final int DEFAULT_TILE_SIZE = 256; // 128px causes garbled rendering at low zoom
 
     public MapManager(Context context, MapView mapView) {
         this.context = context;
