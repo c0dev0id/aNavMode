@@ -29,6 +29,7 @@ public class RegionDetector {
 
     // Only accessed on the main thread.
     private Map<String, DownloadCatalog.Region> current = new HashMap<>();
+    private Map<String, DownloadCatalog.Region> next    = new HashMap<>();
     private Listener listener;
 
     public RegionDetector(List<DownloadCatalog.Region> regions) {
@@ -53,8 +54,8 @@ public class RegionDetector {
 
         List<DownloadCatalog.Region> snapshot = regions;
 
-        // Build the new inside-set
-        Map<String, DownloadCatalog.Region> next = new HashMap<>();
+        // Build the new inside-set (reuse map to avoid per-call allocation)
+        next.clear();
         for (DownloadCatalog.Region r : snapshot) {
             if (contains(r.polygon, lon, lat)) {
                 next.put(r.id, r);
@@ -75,7 +76,10 @@ public class RegionDetector {
             }
         }
 
+        // Swap so next becomes current; current is cleared on the next call.
+        Map<String, DownloadCatalog.Region> tmp = current;
         current = next;
+        next = tmp;
     }
 
     // -------------------------------------------------------------------------

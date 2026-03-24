@@ -53,6 +53,7 @@ public class MainActivity extends AppCompatActivity
 
     private final Choreographer.FrameCallback frameCallback = new Choreographer.FrameCallback() {
         private long lastFrameNanos = 0;
+        private org.mapsforge.core.model.LatLong lastCheckedCenter = null;
 
         @Override
         public void doFrame(long frameTimeNanos) {
@@ -63,7 +64,10 @@ public class MainActivity extends AppCompatActivity
             if (regionDetector != null) {
                 org.mapsforge.core.model.LatLong c =
                         mapView.getModel().mapViewPosition.getCenter();
-                regionDetector.check(c.latitude, c.longitude);
+                if (!c.equals(lastCheckedCenter)) {
+                    regionDetector.check(c.latitude, c.longitude);
+                    lastCheckedCenter = c;
+                }
             }
             Choreographer.getInstance().postFrameCallback(this);
         }
