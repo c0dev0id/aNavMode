@@ -7,6 +7,7 @@ import org.mapsforge.core.graphics.Paint;
 import org.mapsforge.core.graphics.Style;
 import org.mapsforge.core.model.BoundingBox;
 import org.mapsforge.core.model.Point;
+import org.mapsforge.core.model.Rotation;
 import org.mapsforge.core.util.MercatorProjection;
 import org.mapsforge.map.android.graphics.AndroidGraphicFactory;
 import org.mapsforge.map.android.view.MapView;
@@ -83,7 +84,7 @@ public class RegionOverlayLayer extends Layer {
     // -------------------------------------------------------------------------
 
     @Override
-    public void draw(BoundingBox boundingBox, byte zoomLevel, Canvas canvas, Point topLeftPoint) {
+    public void draw(BoundingBox boundingBox, byte zoomLevel, Canvas canvas, Point topLeftPoint, Rotation rotation) {
         int zoom = zoomLevel & 0xFF;
 
         List<DownloadCatalog.Region> snap = regions;
