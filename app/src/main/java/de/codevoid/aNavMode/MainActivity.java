@@ -85,6 +85,11 @@ public class MainActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         AndroidGraphicFactory.createInstance(getApplication());
         Parameters.FRACTIONAL_ZOOM = true;
+        // QUALITY: fall back to child tiles (higher zoom, already rendered) when zooming out,
+        // so the screen shows a blurry-but-complete map instead of blank tiles while the new
+        // zoom level renders. SPEED (default) only looks at parent tiles, which aren't cached
+        // on zoom-out, causing the blank screen.
+        Parameters.PARENT_TILES_RENDERING = Parameters.ParentTilesRendering.QUALITY;
         setContentView(R.layout.activity_main);
 
         mapView         = findViewById(R.id.mapView);
