@@ -10,6 +10,9 @@ import android.widget.ToggleButton;
 
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -90,6 +93,13 @@ public class MainActivity extends AppCompatActivity
         // on zoom-out, causing the blank screen.
         Parameters.PARENT_TILES_RENDERING = Parameters.ParentTilesRendering.QUALITY;
         setContentView(R.layout.activity_main);
+
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+        WindowInsetsControllerCompat insetsController =
+                WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
+        insetsController.hide(WindowInsetsCompat.Type.systemBars());
+        insetsController.setSystemBarsBehavior(
+                WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
 
         mapView         = findViewById(R.id.mapView);
         mapManager      = new MapManager(this, mapView);
