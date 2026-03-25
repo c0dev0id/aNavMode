@@ -83,14 +83,7 @@ public class DownloadCardStack
         DownloadCardView card = cards.get(region.id);
         if (card == null) return;
 
-        card.setHighlighted(false);
-
-        // Only remove cards that aren't queued or active
-        DownloadCardView.CardState s = card.getCardState();
-        if (s == DownloadCardView.CardState.DOWNLOAD
-                || s == DownloadCardView.CardState.UPDATE) {
-            removeCard(region.id);
-        }
+        removeCard(region.id);
     }
 
     // -------------------------------------------------------------------------
@@ -114,8 +107,8 @@ public class DownloadCardStack
             DownloadCardView card = cards.get(rd.regionId);
 
             if (card == null) {
-                // Card was not added yet (e.g. enqueued programmatically, crosshair elsewhere)
-                // We still show it so the user can see queued/active downloads
+                if (!underCrosshair.contains(rd.regionId)) continue;
+
                 final String capturedId = rd.regionId;
                 card = new DownloadCardView(container.getContext(), rd.regionName);
                 card.setTotalBytes(rd.totalCatalogBytes);
