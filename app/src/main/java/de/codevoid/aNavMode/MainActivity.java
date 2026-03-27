@@ -30,6 +30,7 @@ import de.codevoid.aNavMode.download.DownloadCatalog;
 import de.codevoid.aNavMode.download.DownloadDomain;
 import de.codevoid.aNavMode.download.RegionDetector;
 import de.codevoid.aNavMode.ui.DownloadCardStack;
+import de.codevoid.aNavMode.ui.MapDownloadSheet;
 import de.codevoid.aNavMode.map.LocationHelper;
 import de.codevoid.aNavMode.map.MapManager;
 import de.codevoid.aNavMode.map.PanController;
@@ -287,7 +288,19 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onDownloadMap() {
-        Toast.makeText(this, "Map downloader — not yet implemented", Toast.LENGTH_SHORT).show();
+        DownloadDomain dd = DownloadDomain.getInstance();
+        if (dd == null) {
+            Toast.makeText(this, "Download system not ready — try again", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        findViewById(R.id.debugPanel).setVisibility(View.GONE);
+        org.mapsforge.core.model.LatLong center =
+                mapView.getModel().mapViewPosition.getCenter();
+        MapDownloadSheet.show(this, center.latitude, center.longitude, dd,
+                () -> mapManager.loadMapAsync(new MapManager.LoadCallback() {
+                    @Override public void onLoaded() {}
+                    @Override public void onError(String r) {}
+                }));
     }
 
     @Override

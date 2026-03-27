@@ -388,6 +388,53 @@ public class DownloadDomain {
         return total;
     }
 
+    /** Returns the current in-memory catalog snapshot. */
+    public DownloadCatalog.Catalog getCatalog() { return catalog; }
+
+    /**
+     * Deletes all local files (map + tiles) for a region.
+     * Must NOT be called while the region is queued or active.
+     * Safe to call from any thread (runs on executor).
+     */
+    public void deleteRegion(String regionId, Runnable onDone) {
+        executor.execute(() -> {
+            DownloadCatalog.Region region = findRegion(regionId);
+            if (region == null) return;
+            DownloadCatalog.Catalog snap = catalog;
+            for (DownloadCatalog.CatalogFile f : region.files) {
+                File local = localFile(f.path);
+                local.delete();
+                // Also delete any partial downloads
+                File parent = local.getParentFile();
+                if (parent != null) {
+                    String prefix = local.getName() + ".download.";
+                    File[] partials = parent.listFiles(
+                            (dir, name) -> name.startsWith(prefix));
+                    if (partials != null) for (File p : partials) p.delete();
+                }
+            }
+            for (String coord : region.tiles) {
+                DownloadCatalog.Tile tile = snap.tiles.get(coord);
+                if (tile == null) continue;
+                // Only delete tiles not needed by other downloaded regions
+                boolean neededElsewhere = false;
+                for (DownloadCatalog.Region other : snap.regions) {
+                    if (other.id.equals(regionId)) continue;
+                    if (!other.tiles.contains(coord)) continue;
+                    // Check if the other region is downloaded
+                    boolean otherHasFiles = true;
+                    for (DownloadCatalog.CatalogFile of : other.files) {
+                        if (!localFile(of.path).exists()) { otherHasFiles = false; break; }
+                    }
+                    if (otherHasFiles) { neededElsewhere = true; break; }
+                }
+                if (!neededElsewhere) localFile(tile.path).delete();
+            }
+            clearMeta(region);
+            if (onDone != null) onDone.run();
+        });
+    }
+
     public void destroy() {
         instance = null;
         executor.shutdownNow();
