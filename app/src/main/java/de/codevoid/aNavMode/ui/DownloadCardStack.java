@@ -83,6 +83,13 @@ public class DownloadCardStack
         DownloadCardView card = cards.get(region.id);
         if (card == null) return;
 
+        // Keep cards that are queued or actively downloading; just un-highlight
+        DownloadCardView.CardState s = card.getCardState();
+        if (s == DownloadCardView.CardState.QUEUED || s == DownloadCardView.CardState.ACTIVE) {
+            card.setHighlighted(false);
+            return;
+        }
+
         removeCard(region.id);
     }
 
@@ -107,8 +114,6 @@ public class DownloadCardStack
             DownloadCardView card = cards.get(rd.regionId);
 
             if (card == null) {
-                if (!underCrosshair.contains(rd.regionId)) continue;
-
                 final String capturedId = rd.regionId;
                 card = new DownloadCardView(container.getContext(), rd.regionName);
                 card.setTotalBytes(rd.totalCatalogBytes);
