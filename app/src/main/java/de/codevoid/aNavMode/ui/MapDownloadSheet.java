@@ -48,7 +48,7 @@ public class MapDownloadSheet implements DownloadDomain.Listener {
     private final DownloadDomain domain;
     private final Handler ui = new Handler(Looper.getMainLooper());
     private final Map<String, RowViews> rows = new HashMap<>();
-    private final LinearLayout listContainer;
+    private LinearLayout listContainer;
     private AlertDialog dialog;
     private Runnable onMapReload;
 
